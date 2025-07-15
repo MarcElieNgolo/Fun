@@ -1,88 +1,101 @@
+// src/components/supprimer.tsx
 import axios from "axios";
 import { useState, useCallback, useEffect } from "react";
 import VoletVente from "./suppression_outils/ventes";
 import VoletRealisation from "./suppression_outils/realisation";
 
-// Types
-type RawItem = {
+// Interface commune utilisée partout
+interface Post {
   id: number;
   titre: string;
   description: string;
-  images: string;
-  type: string;
+  images: string[]; // tableau de chaînes (urls/base64)
   prix?: string;
-};
+  type: "vente" | "realisation";
+  sousType?: string;
+}
 
-type ProcessedItem = RawItem & {
-  imageSources: string[];
-};
+// Données brutes reçues du backend
+interface RawItem {
+  id: number;
+  titre: string;
+  description: string;
+  images: string; // chaîne (json stringifiée, base64 concaténé, etc.)
+  prix?: string;
+  type: string;
+  sousType?: string;
+}
 
-type Vente = ProcessedItem & {
-  type: "vente";
-  prix: string;
-};
-
-// 🔍 Traitement d’un champ `images` mal formaté ou encodé
+// Fonction utilitaire pour extraire un tableau d'images à partir de la chaîne 'images'
 const getAllImageSources = (imagesDataFromDB: string | null | undefined): string[] => {
   if (!imagesDataFromDB || typeof imagesDataFromDB !== "string") {
     return [];
   }
 
+  let processedStrings: string[] = [];
   let tempString = imagesDataFromDB.trim();
 
-  // Nettoyage des guillemets en trop
   if (tempString.startsWith('"') && tempString.endsWith('"')) {
-    tempString = tempString.slice(1, -1);
+    tempString = tempString.substring(1, tempString.length - 1);
   }
   if (tempString.startsWith('\\"') && tempString.endsWith('\\"')) {
-    tempString = tempString.slice(2, -2);
+    tempString = tempString.substring(2, tempString.length - 2);
   }
 
-  let processedStrings: string[] = [];
-
-  // Essayer de parser proprement comme JSON
   if (tempString.startsWith("[") && tempString.endsWith("]")) {
     try {
       const parsedArray = JSON.parse(tempString);
       if (Array.isArray(parsedArray)) {
-        processedStrings = parsedArray.filter(s => typeof s === "string" && s.trim().length > 0);
+        processedStrings = parsedArray.filter((s) => typeof s === "string" && s.length > 0);
       }
     } catch (e) {
-      console.warn("Échec du parsing JSON, fallback split:", e);
-      processedStrings = tempString.split(",").map(s => s.trim());
+      console.warn("Échec du parsing JSON, tentative de split par virgule/nettoyage manuel:", e);
+      processedStrings = tempString.split(",").map((s) => s.trim());
     }
   } else {
-    processedStrings = tempString.split(",").map(s => s.trim());
+    processedStrings = tempString.split(",").map((s) => s.trim());
   }
 
   return processedStrings
-    .map(s => {
-      let final = s;
-      if (final.startsWith('"') && final.endsWith('"')) final = final.slice(1, -1);
-      if (final.startsWith('\\"') && final.endsWith('\\"')) final = final.slice(2, -2);
-      if (!final.startsWith("data:image/")) {
-        return `data:image/jpeg;base64,${final}`;
+    .filter((s) => s.length > 0)
+    .map((s) => {
+      let finalString = s;
+      if (finalString.startsWith('"') && finalString.endsWith('"')) {
+        finalString = finalString.substring(1, finalString.length - 1);
       }
-      return final;
+      if (finalString.startsWith('\\"') && finalString.endsWith('\\"')) {
+        finalString = finalString.substring(2, finalString.length - 2);
+      }
+
+      // Si ce n’est pas déjà une image en base64 (data URI), on ajoute un prefixe
+      if (!finalString.startsWith("data:image/")) {
+        return `data:image/jpeg;base64,${finalString}`;
+      }
+      return finalString;
     })
-    .filter(s => s.startsWith("data:image/"));
+    .filter((s) => s.startsWith("data:image/"));
 };
 
 export default function Suppression() {
-  const [data, setData] = useState<ProcessedItem[]>([]);
+  const [data, setData] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 📥 Chargement des données
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get<RawItem[]>("https://batiproingenieuriebackend.onrender.com/recup");
+      const response = await axios.get("https://batiproingenieuriebackend.onrender.com/recup");
 
-      const processedData: ProcessedItem[] = response.data.map((item) => ({
-        ...item,
-        imageSources: getAllImageSources(item.images),
+      // Transformation : on parse les images en tableau string[]
+      const processedData: Post[] = response.data[0].map((item: RawItem) => ({
+        id: item.id,
+        titre: item.titre,
+        description: item.description,
+        images: getAllImageSources(item.images),
+        prix: item.prix,
+        type: item.type as "vente" | "realisation",
+        sousType: item.sousType,
       }));
 
       setData(processedData);
@@ -98,22 +111,21 @@ export default function Suppression() {
     fetchData();
   }, [fetchData]);
 
-  // 🗑️ Suppression
+  // Sépare les ventes et les réalisations dans deux tableaux typés
+  const ventesToDisplay = data.filter((item) => item.type === "vente");
+  const realisationsToDisplay = data.filter((item) => item.type === "realisation");
+
   const handleDelete = useCallback(async (id: number, itemType: "vente" | "realisation") => {
     try {
       await axios.delete(`https://batiproingenieuriebackend.onrender.com/delete/${id}`);
-      setData(prev => prev.filter(item => !(item.id === id && item.type === itemType)));
+
+      setData((prevData) => prevData.filter((item) => !(item.id === id && item.type === itemType)));
       alert(`${itemType} de l'ID ${id} supprimée avec succès.`);
     } catch (err) {
       console.error(`Erreur lors de la suppression de la ${itemType} ${id}:`, err);
       alert(`Erreur lors de la suppression de la ${itemType}.`);
     }
   }, []);
-
-  const realisationsToDisplay = data.filter(item => item.type === "realisation");
-  const ventesToDisplay: Vente[] = data.filter(
-    (item): item is Vente => item.type === "vente" && typeof item.prix === "string"
-  );
 
   if (loading) {
     return <div className="text-center text-xl p-8">Chargement des données...</div>;
@@ -134,7 +146,10 @@ export default function Suppression() {
       </section>
 
       <section>
-        <VoletRealisation realisations={realisationsToDisplay} onDelete={(id) => handleDelete(id, "realisation")} />
+        <VoletRealisation
+          realisations={realisationsToDisplay}
+          onDelete={(id) => handleDelete(id, "realisation")}
+        />
       </section>
     </div>
   );
