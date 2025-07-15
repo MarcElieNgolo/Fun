@@ -168,7 +168,7 @@ export default function CarteRealisation({ post }: CarteRealisationProps) {
                 </h3>
                 <p className="text-gray-700 text-lg leading-relaxed">
                   {post.description}
-                </p>
+         aa       </p>
                 {/* Ajoutez l'affichage du prix si pertinent pour ce type de carte */}
                 {post.type === 'vente' && post.prix && (
                     <p className="text-2xl font-extrabold text-orange-600 mt-4">{post.prix}</p>

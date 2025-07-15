@@ -1,59 +1,53 @@
 // src/pages/Classique.tsx
 import Navbar from "../components/navbar";
-import React, { useState, useEffect, useRef, useCallback } from "react"; // Importez useCallback
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import CarteVente from "../components/carteVente";
 import CarteRealisation from "../components/carteRealisation";
 import axios from "axios";
-import Loader from "./../components/loader/loader"; // Assurez-vous que le chemin est correct
+import Loader from "../components/loader/loader";
 
-// ATTENTION : LA FONCTION getAllImageSources EST SUPPRIMÉE D'ICI.
-// Elle ne doit pas être présente dans les composants qui consomment les données
-// si le backend envoie déjà les images au format string[].
-
-// Définition de type pour un post (comme reçu du backend)
 interface Post {
   id: number;
   titre: string;
   description: string;
-  images: string[]; // <-- CORRECTION MAJEURE ICI : images est un TABLEAU DE CHAINES (Data URLs complètes)
-  prix?: string; // Optionnel
-  type: "vente" | "realisation"; // 'vente' ou 'realisation'
-  sousType?: string; // Optionnel
+  images: string[];
+  prix?: string;
+  type: "vente" | "realisation";
+  sousType?: string;
 }
 
 export default function Classique() {
   const [classiquePosts, setClassiquePosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const realisationsRef = useRef<HTMLDivElement>(null);
   const ventesRef = useRef<HTMLDivElement>(null);
 
-  // Fonction pour scroller vers une section
   const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
-    if (ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, []); // useCallback pour optimiser la fonction de callback
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   useEffect(() => {
-    const fetchClassiquePosts = async () => {
+    const fetchPosts = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Le backend est censé renvoyer un tableau de `Post` où `images` est déjà `string[]`.
-        const response = await axios.get<Post[]>(
+        const resp = await axios.get<any[]>(
           "https://batiproingenieuriebackend.onrender.com/classique"
         );
 
-        // Si le backend renvoie déjà les images comme string[], AUCUN TRAITEMENT SUPPLÉMENTAIRE N'EST NÉCESSAIRE.
-        // On n'a pas besoin de filtrer par sousType 'classique' si l'endpoint est déjà dédié.
-        // Cependant, si l'endpoint `/classique` peut aussi renvoyer d'autres sous-types,
-        // vous pourriez vouloir ajouter un filtre similaire à `Architecture.tsx`.
-        // Pour l'instant, je pars du principe que `/classique` ne renvoie que des posts "classiques".
+        const posts: Post[] = resp.data.map((item) => ({
+          id: item.id,
+          titre: item.titre,
+          description: item.description,
+          images: Array.isArray(item.images) ? item.images : [],
+          prix: item.prix,
+          type: item.type === "vente" ? "vente" : "realisation",
+          sousType: item.soustype ?? item.sousType,
+        }));
 
-        setClassiquePosts(response.data); // Utilisez directement response.data
-
+        setClassiquePosts(posts);
       } catch (err) {
         console.error("Erreur lors de la récupération des posts classiques:", err);
         setError(
@@ -64,13 +58,15 @@ export default function Classique() {
       }
     };
 
-    fetchClassiquePosts();
-  }, []); // Dépendances vides pour un seul appel au montage
+    fetchPosts();
+  }, []);
 
   const realisationsClassique = classiquePosts.filter(
     (post) => post.type === "realisation"
   );
-  const ventesClassique = classiquePosts.filter((post) => post.type === "vente");
+  const ventesClassique = classiquePosts.filter(
+    (post) => post.type === "vente"
+  );
 
   if (loading) {
     return (
@@ -94,7 +90,7 @@ export default function Classique() {
 
   return (
     <div className="Classique">
-      <Navbar admin={true}></Navbar>
+      <Navbar admin={true} />
 
       <div className="container mx-auto p-6">
         <h1 className="text-4xl font-extrabold text-center text-gray-900 mb-8">
@@ -104,19 +100,19 @@ export default function Classique() {
         <div className="flex justify-center space-x-4 mb-10">
           <button
             onClick={() => scrollToSection(realisationsRef)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300 text-lg font-semibold"
           >
             Nos Réalisations
           </button>
           <button
             onClick={() => scrollToSection(ventesRef)}
-            className="px-6 py-3 bg-orange-600 text-white rounded-lg shadow-md hover:bg-orange-700 transition-colors duration-300 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
+            className="px-6 py-3 bg-orange-600 text-white rounded-lg shadow-md hover:bg-orange-700 transition-colors duration-300 text-lg font-semibold"
           >
             Nos Ventes
           </button>
         </div>
 
-        <section ref={realisationsRef} className="mb-12 pt-4" id="realisations-classique-section">
+        <section ref={realisationsRef} className="mb-12 pt-4">
           <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-6">
             Réalisations Classiques
           </h2>
@@ -133,7 +129,7 @@ export default function Classique() {
           )}
         </section>
 
-        <section ref={ventesRef} className="mb-12 pt-4" id="ventes-classique-section">
+        <section ref={ventesRef} className="mb-12 pt-4">
           <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-orange-500 pb-2 mb-6">
             Ventes Classiques
           </h2>

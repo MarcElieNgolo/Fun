@@ -1,279 +1,141 @@
-// components/supprimer.tsx
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import Loader from './loader/loader'; // Assurez-vous que le chemin est correct
+import axios from "axios";
+import { useState, useCallback, useEffect } from "react";
+import VoletVente from "./suppression_outils/ventes";
+import VoletRealisation from "./suppression_outils/realisation";
 
-// Définition de l'interface Post - COPIE CELLE-CI EXACTEMENT dans tous les fichiers qui utilisent Post
-interface Post {
-    id: number;
-    titre: string;
-    description: string;
-    images: string[]; // DOIT être string[]
-    prix?: string; // Optionnel
-    type: 'vente' | 'realisation';
-    sousType?: string; // Optionnel
-}
-
-// --- Composant ImageSlider (copié ici car il est utilisé par VoletVente et VoletRealisation) ---
-// Idéalement, ce composant serait dans un fichier séparé pour éviter la duplication.
-interface ImageSliderProps {
-    images: string[];
-    title: string;
-}
-
-const ImageSlider: React.FC<ImageSliderProps> = ({ images, title }) => {
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-    const goToNextImage = useCallback(() => {
-        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, [images.length]);
-
-    const goToPreviousImage = useCallback(() => {
-        setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
-    }, [images.length]);
-
-    const showNavigation = images.length > 1;
-
-    return (
-        <div className="relative w-full h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
-            <div className="flex items-center justify-center w-full h-full">
-                <img
-                    src={images[currentImageIndex]}
-                    alt={`${title} - Image ${currentImageIndex + 1}`}
-                    className="max-w-full max-h-full object-contain"
-                />
-            </div>
-
-            {showNavigation && (
-                <>
-                    <button
-                        onClick={goToPreviousImage}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-200 z-10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75"
-                        aria-label="Image précédente"
-                    >
-                        &lt;
-                    </button>
-                    <button
-                        onClick={goToNextImage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-200 z-10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75"
-                        aria-label="Image suivante"
-                    >
-                        &gt;
-                    </button>
-                </>
-            )}
-
-            {showNavigation && (
-                <div className="absolute bottom-2 left-0 right-0 flex justify-center space-x-1 z-10">
-                    {images.map((_, index) => (
-                        <span
-                            key={index}
-                            className={`w-2 h-2 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-gray-400'} border border-gray-600 cursor-pointer`}
-                            onClick={() => setCurrentImageIndex(index)}
-                            aria-label={`Aller à l'image ${index + 1}`}
-                        />
-                    ))}
-                </div>
-            )}
-        </div>
-    );
+// Types
+type RawItem = {
+  id: number;
+  titre: string;
+  description: string;
+  images: string;
+  type: string;
+  prix?: string;
 };
 
-
-// --- Composant VoletVente (copié et adapté pour ne pas dépendre d'un import externe) ---
-interface VoletVenteProps {
-    ventes: Post[];
-    onDelete: (id: number) => void;
-}
-
-const VoletVente: React.FC<VoletVenteProps> = ({ ventes, onDelete }) => {
-    return (
-        <div className="space-y-8 p-4">
-            <h2 className="text-3xl font-extrabold text-gray-900 border-b-2 border-orange-500 pb-2">
-                Nos Ventes Disponibles
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {ventes.length > 0 ? (
-                    ventes.map((post) => {
-                        const allImageSources = post.images;
-
-                        return (
-                            <div
-                                key={post.id}
-                                className="bg-white shadow-xl rounded-lg overflow-hidden flex flex-col h-full"
-                            >
-                                {allImageSources && allImageSources.length > 0 ? (
-                                    <ImageSlider images={allImageSources} title={post.titre} />
-                                ) : (
-                                    <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500">
-                                        Image(s) non disponible(s)
-                                    </div>
-                                )}
-
-                                <div className="p-5 flex flex-col flex-grow">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                        {post.titre} <span className="text-sm font-normal text-gray-500">(ID: {post.id})</span>
-                                    </h3>
-                                    <p className="text-gray-700 text-sm mb-3 flex-grow">{post.description}</p>
-                                    <p className="text-2xl font-extrabold text-orange-600 mt-auto">{post.prix}</p>
-                                    <button
-                                        onClick={() => onDelete(post.id)}
-                                        className="mt-4 w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition duration-300 ease-in-out text-lg font-semibold"
-                                    >
-                                        Supprimer cette vente
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })
-                ) : (
-                    <p className="col-span-full text-center text-gray-600 text-lg">
-                        Aucune vente à afficher pour le moment.
-                    </p>
-                )}
-            </div>
-        </div>
-    );
+type ProcessedItem = RawItem & {
+  imageSources: string[];
 };
 
-// --- Composant VoletRealisation (créé ici car il est utilisé dans supprimer.tsx) ---
-interface VoletRealisationProps {
-    realisations: Post[];
-    onDelete: (id: number) => void;
-}
-
-const VoletRealisation: React.FC<VoletRealisationProps> = ({ realisations, onDelete }) => {
-    return (
-        <div className="space-y-8 p-4">
-            <h2 className="text-3xl font-extrabold text-gray-900 border-b-2 border-green-500 pb-2">
-                Nos Réalisations
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {realisations.length > 0 ? (
-                    realisations.map((post) => (
-                        <div key={post.id} className="bg-white shadow-xl rounded-lg overflow-hidden flex flex-col h-full">
-                            {post.images && post.images.length > 0 ? (
-                                <ImageSlider images={post.images} title={post.titre} />
-                            ) : (
-                                <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500">
-                                    Image(s) non disponible(s)
-                                </div>
-                            )}
-                            <div className="p-5 flex flex-col flex-grow">
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                    {post.titre} <span className="text-sm font-normal text-gray-500">(ID: {post.id})</span>
-                                </h3>
-                                <p className="text-gray-700 text-sm mb-3 flex-grow">{post.description}</p>
-                                <button
-                                    onClick={() => onDelete(post.id)}
-                                    className="mt-4 w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition duration-300 ease-in-out text-lg font-semibold"
-                                >
-                                    Supprimer cette réalisation
-                                </button>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <p className="col-span-full text-center text-gray-600 text-lg">
-                        Aucune réalisation à afficher pour le moment.
-                    </p>
-                )}
-            </div>
-        </div>
-    );
+type Vente = ProcessedItem & {
+  type: "vente";
+  prix: string;
 };
 
+// 🔍 Traitement d’un champ `images` mal formaté ou encodé
+const getAllImageSources = (imagesDataFromDB: string | null | undefined): string[] => {
+  if (!imagesDataFromDB || typeof imagesDataFromDB !== "string") {
+    return [];
+  }
 
-// --- Composant Supprimer principal ---
-export default function Supprimer() {
-    const [realisations, setRealisations] = useState<Post[]>([]);
-    const [ventes, setVentes] = useState<Post[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const [filterType, setFilterType] = useState<'all' | 'realisation' | 'vente'>('all');
+  let tempString = imagesDataFromDB.trim();
 
-    const fetchPosts = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const realisationsResponse = await axios.get<Post[]>("https://batiproingenieuriebackend.onrender.com/realisations");
-            const ventesResponse = await axios.get<Post[]>("https://batiproingenieuriebackend.onrender.com/ventes");
+  // Nettoyage des guillemets en trop
+  if (tempString.startsWith('"') && tempString.endsWith('"')) {
+    tempString = tempString.slice(1, -1);
+  }
+  if (tempString.startsWith('\\"') && tempString.endsWith('\\"')) {
+    tempString = tempString.slice(2, -2);
+  }
 
-            setRealisations(realisationsResponse.data);
-            setVentes(ventesResponse.data);
-        } catch (err) {
-            console.error("Error fetching posts:", err);
-            setError("Échec du chargement des publications pour la suppression.");
-        } finally {
-            setLoading(false);
-        }
-    }, []); // Dépendances vides car fetchPosts n'utilise pas de valeurs de l'extérieur du hook qui pourraient changer
+  let processedStrings: string[] = [];
 
-    useEffect(() => {
-        fetchPosts();
-    }, [fetchPosts]); // Dépendance à fetchPosts (qui est memoized par useCallback)
+  // Essayer de parser proprement comme JSON
+  if (tempString.startsWith("[") && tempString.endsWith("]")) {
+    try {
+      const parsedArray = JSON.parse(tempString);
+      if (Array.isArray(parsedArray)) {
+        processedStrings = parsedArray.filter(s => typeof s === "string" && s.trim().length > 0);
+      }
+    } catch (e) {
+      console.warn("Échec du parsing JSON, fallback split:", e);
+      processedStrings = tempString.split(",").map(s => s.trim());
+    }
+  } else {
+    processedStrings = tempString.split(",").map(s => s.trim());
+  }
 
-    const handleDelete = async (id: number, type: 'realisation' | 'vente') => {
-        try {
-            await axios.delete(`https://batiproingenieuriebackend.onrender.com/${type}/${id}`);
-            fetchPosts(); // Re-fetch all posts after successful deletion
-        } catch (err) {
-            console.error(`Error deleting ${type} with ID ${id}:`, err);
-            setError(`Échec de la suppression de la ${type}.`);
-        }
-    };
+  return processedStrings
+    .map(s => {
+      let final = s;
+      if (final.startsWith('"') && final.endsWith('"')) final = final.slice(1, -1);
+      if (final.startsWith('\\"') && final.endsWith('\\"')) final = final.slice(2, -2);
+      if (!final.startsWith("data:image/")) {
+        return `data:image/jpeg;base64,${final}`;
+      }
+      return final;
+    })
+    .filter(s => s.startsWith("data:image/"));
+};
 
-    const realisationsToDisplay = filterType === 'all' || filterType === 'realisation' ? realisations : [];
-    const ventesToDisplay = filterType === 'all' || filterType === 'vente' ? ventes : [];
+export default function Suppression() {
+  const [data, setData] = useState<ProcessedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    if (loading) return <Loader />;
-    if (error) return <div className="text-center p-8 text-lg text-red-600">{error}</div>;
+  // 📥 Chargement des données
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get<RawItem[]>("https://batiproingenieuriebackend.onrender.com/recup");
 
-    return (
-        <div className="Supprimer">
-            <h1 className="text-4xl font-extrabold text-center text-gray-900 mb-8">
-                Gérer les Publications
-            </h1>
+      const processedData: ProcessedItem[] = response.data.map((item) => ({
+        ...item,
+        imageSources: getAllImageSources(item.images),
+      }));
 
-            <div className="flex justify-center space-x-4 mb-8">
-                <button
-                    onClick={() => setFilterType('all')}
-                    className={`px-6 py-3 rounded-lg shadow-md text-lg font-semibold ${filterType === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
-                >
-                    Tout afficher
-                </button>
-                <button
-                    onClick={() => setFilterType('realisation')}
-                    className={`px-6 py-3 rounded-lg shadow-md text-lg font-semibold ${filterType === 'realisation' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'}`}
-                >
-                    Réalisations
-                </button>
-                <button
-                    onClick={() => setFilterType('vente')}
-                    className={`px-6 py-3 rounded-lg shadow-md text-lg font-semibold ${filterType === 'vente' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-800'}`}
-                >
-                    Ventes
-                </button>
-            </div>
+      setData(processedData);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des données:", err);
+      setError("Impossible de charger les données. Veuillez réessayer plus tard.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-            {realisationsToDisplay.length > 0 && (
-                <VoletRealisation
-                    realisations={realisationsToDisplay}
-                    onDelete={(id: number) => handleDelete(id, 'realisation')}
-                />
-            )}
-            {ventesToDisplay.length > 0 && (
-                <VoletVente
-                    ventes={ventesToDisplay}
-                    onDelete={(id: number) => handleDelete(id, 'vente')}
-                />
-            )}
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-            {realisationsToDisplay.length === 0 && ventesToDisplay.length === 0 && (
-                <p className="text-center text-gray-600 text-lg mt-8">
-                    Aucune publication disponible pour le moment.
-                </p>
-            )}
-        </div>
-    );
+  // 🗑️ Suppression
+  const handleDelete = useCallback(async (id: number, itemType: "vente" | "realisation") => {
+    try {
+      await axios.delete(`https://batiproingenieuriebackend.onrender.com/delete/${id}`);
+      setData(prev => prev.filter(item => !(item.id === id && item.type === itemType)));
+      alert(`${itemType} de l'ID ${id} supprimée avec succès.`);
+    } catch (err) {
+      console.error(`Erreur lors de la suppression de la ${itemType} ${id}:`, err);
+      alert(`Erreur lors de la suppression de la ${itemType}.`);
+    }
+  }, []);
+
+  const realisationsToDisplay = data.filter(item => item.type === "realisation");
+  const ventesToDisplay: Vente[] = data.filter(
+    (item): item is Vente => item.type === "vente" && typeof item.prix === "string"
+  );
+
+  if (loading) {
+    return <div className="text-center text-xl p-8">Chargement des données...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-600 text-xl p-8">{error}</div>;
+  }
+
+  return (
+    <div className="container mx-auto p-6 bg-gray-100 min-h-screen">
+      <h1 className="text-4xl font-extrabold text-center text-gray-900 mb-12">
+        Gestion des Contenus du Site
+      </h1>
+
+      <section className="mb-12">
+        <VoletVente ventes={ventesToDisplay} onDelete={(id) => handleDelete(id, "vente")} />
+      </section>
+
+      <section>
+        <VoletRealisation realisations={realisationsToDisplay} onDelete={(id) => handleDelete(id, "realisation")} />
+      </section>
+    </div>
+  );
 }

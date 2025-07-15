@@ -1,58 +1,53 @@
 // src/pages/Ecologique.tsx
 import Navbar from "../components/navbar";
-import React, { useState, useEffect, useRef, useCallback } from "react"; // Importez useCallback
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import CarteVente from "../components/carteVente";
 import CarteRealisation from "../components/carteRealisation";
-import Loader from "./../components/loader/loader"; // Assurez-vous que le chemin est correct
-
+import Loader from "../components/loader/loader";
 import axios from "axios";
 
-// *** ATTENTION : LA FONCTION getAllImageSources EST SUPPRIMÉE D'ICI. ***
-// Elle est inutile si le backend envoie déjà 'images' comme un tableau de Data URLs.
-// Si vous rencontrez toujours des problèmes d'images après cette suppression,
-// le problème est très probablement au niveau du backend ou des données stockées.
-
-// --- Interface Post ---
 interface Post {
   id: number;
   titre: string;
   description: string;
-  images: string[]; // <-- CORRECTION MAJEURE ICI : images est un TABLEAU DE CHAINES (Data URLs complètes)
-  prix?: string; // Optionnel
-  type: "vente" | "realisation"; // 'vente' ou 'realisation'
-  sousType?: string; // Optionnel
+  images: string[];
+  prix?: string;
+  type: "vente" | "realisation";
+  sousType?: string;
 }
 
 export default function Ecologique() {
-  const [allEcologiquePosts, setAllEcologiquePosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Références pour les sections
-  const realisationsSectionRef = useRef<HTMLDivElement>(null);
-  const ventesSectionRef = useRef<HTMLDivElement>(null);
+  const realisationsRef = useRef<HTMLDivElement>(null);
+  const ventesRef = useRef<HTMLDivElement>(null);
 
-  // Fonction de défilement optimisée avec useCallback
   const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
-    if (ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   useEffect(() => {
-    const fetchEcologiquePosts = async () => {
+    const fetchPosts = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Le backend est censé renvoyer un tableau de `Post` où `images` est déjà `string[]`.
-        const response = await axios.get<Post[]>(
+        const resp = await axios.get<any[]>(
           "https://batiproingenieuriebackend.onrender.com/ecologique"
         );
 
-        // Si l'endpoint `/ecologique` ne renvoie que des posts "écologiques",
-        // pas besoin de filtrer par sousType ici. On utilise directement response.data.
-        setAllEcologiquePosts(response.data);
+        const processed: Post[] = resp.data.map((item) => ({
+          id: item.id,
+          titre: item.titre,
+          description: item.description,
+          images: Array.isArray(item.images) ? item.images : [],
+          prix: item.prix,
+          type: item.type === "vente" ? "vente" : "realisation",
+          sousType: item.soustype ?? item.sousType,
+        }));
 
+        setPosts(processed);
       } catch (err) {
         console.error("Erreur de chargement des posts écologiques:", err);
         setError("Échec du chargement des projets écologiques.");
@@ -61,16 +56,11 @@ export default function Ecologique() {
       }
     };
 
-    fetchEcologiquePosts();
-  }, []); // Dépendances vides pour un seul appel au montage
+    fetchPosts();
+  }, []);
 
-  // Filtrage des posts pour l'affichage (réalisations et ventes)
-  const realisationsEcologique = allEcologiquePosts.filter(
-    (post) => post.type === "realisation"
-  );
-  const ventesEcologique = allEcologiquePosts.filter(
-    (post) => post.type === "vente"
-  );
+  const realisations = posts.filter((p) => p.type === "realisation");
+  const ventes = posts.filter((p) => p.type === "vente");
 
   if (loading) {
     return (
@@ -94,41 +84,35 @@ export default function Ecologique() {
 
   return (
     <div className="Ecologique">
-      <Navbar admin={true}></Navbar>
+      <Navbar admin={true} />
 
       <div className="container mx-auto p-6">
         <h1 className="text-4xl font-extrabold text-center text-gray-900 mb-8">
           Constructions Écologiques
         </h1>
 
-        {/* Boutons de navigation (utilisent les refs) */}
         <div className="flex justify-center space-x-4 mb-10">
           <button
-            onClick={() => scrollToSection(realisationsSectionRef)}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-colors duration-300 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+            onClick={() => scrollToSection(realisationsRef)}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-colors duration-300 text-lg font-semibold"
           >
             Nos Réalisations
           </button>
           <button
-            onClick={() => scrollToSection(ventesSectionRef)}
-            className="px-6 py-3 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition-colors duration-300 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
+            onClick={() => scrollToSection(ventesRef)}
+            className="px-6 py-3 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition-colors duration-300 text-lg font-semibold"
           >
             Nos Ventes
           </button>
         </div>
 
-        {/* Section Réalisations Écologiques */}
-        <section
-          ref={realisationsSectionRef}
-          className="mb-12 pt-4"
-          id="realisations-ecologique-section"
-        >
+        <section ref={realisationsRef} className="mb-12 pt-4">
           <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-green-500 pb-2 mb-6">
             Réalisations Écologiques
           </h2>
-          {realisationsEcologique.length > 0 ? (
+          {realisations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {realisationsEcologique.map((post) => (
+              {realisations.map((post) => (
                 <CarteRealisation key={post.id} post={post} />
               ))}
             </div>
@@ -139,18 +123,13 @@ export default function Ecologique() {
           )}
         </section>
 
-        {/* Section Ventes Écologiques */}
-        <section
-          ref={ventesSectionRef}
-          className="mb-12 pt-4"
-          id="ventes-ecologique-section"
-        >
+        <section ref={ventesRef} className="mb-12 pt-4">
           <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-yellow-500 pb-2 mb-6">
             Ventes Écologiques
           </h2>
-          {ventesEcologique.length > 0 ? (
+          {ventes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ventesEcologique.map((post) => (
+              {ventes.map((post) => (
                 <CarteVente key={post.id} post={post} />
               ))}
             </div>

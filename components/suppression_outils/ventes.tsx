@@ -34,7 +34,7 @@ export default function VoletVente({ ventes, onDelete }: VoletVenteProps) {
                                 key={post.id}
                                 className="bg-white shadow-xl rounded-lg overflow-hidden flex flex-col h-full"
                             >
-                                {allImageSources && allImageSources.length > 0 ? (
+                                {allImageSources ? (
                                     <ImageSlider images={allImageSources} title={post.titre} />
                                 ) : (
                                     <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500">
