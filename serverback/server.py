@@ -117,7 +117,11 @@ def get_all_posts():
         cursor.execute("SELECT * FROM post")
         posts = cursor.fetchall()
         conn.close()
-        return jsonify(posts)
+
+        # Convertir les résultats en JSON compatible
+        posts_dict = [dict(zip([desc[0] for desc in cursor.description], post)) for post in posts]
+        return jsonify(posts_dict)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -129,7 +133,11 @@ def get_posts_by_type(type_):
         cursor.execute("SELECT * FROM post WHERE type = %s", (type_,))
         posts = cursor.fetchall()
         conn.close()
-        return jsonify(posts)
+
+        # Convertir les résultats en JSON compatible
+        posts_dict = [dict(zip([desc[0] for desc in cursor.description], post)) for post in posts]
+        return jsonify(posts_dict)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
