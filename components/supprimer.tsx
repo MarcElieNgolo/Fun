@@ -87,8 +87,10 @@ export default function Suppression() {
     try {
       const response = await axios.get("https://batiproingenieuriebackend.onrender.com/recup");
 
-      // Transformation : on parse les images en tableau string[]
-      const processedData: Post[] = response.data[0].map((item: RawItem) => ({
+      console.log("Données brutes reçues :", response.data);
+
+      // Attention ici : on utilise response.data.map (pas [0].map)
+      const processedData: Post[] = response.data.map((item: RawItem) => ({
         id: item.id,
         titre: item.titre,
         description: item.description,
