@@ -142,6 +142,10 @@ def get_architecture():
 def get_ecologique():
     return get_posts_by_type("ecologique")
 
+@app.route("/terrain", methods=["GET"])
+def get_terrain():
+    return get_posts_by_type("terrain")
+
 @app.route("/classique", methods=["GET"])
 def get_classique():
     return get_posts_by_type("classique")
