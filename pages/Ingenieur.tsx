@@ -1,76 +1,50 @@
-// src/pages/Ingenieur.tsx
+// src/pages/Ingenieur.tsx (Modifié)
 import Navbar from "../components/navbar";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import CarteVente from "../components/carteVente";
 import CarteRealisation from "../components/carteRealisation";
 import axios from "axios";
-import Loader from "./../components/loader/loader"; // Verify this path is correct for your Loader component
+import Loader from "./../components/loader/loader";
 
-// Utility function to parse Base64 image strings
-// RECOMMENDATION: Extract this function to a shared utility file (e.g., src/utils/imageUtils.ts)
-// and import it wherever needed (Architecture, Classique, Ecologique, Terrain, Ingenieur, etc.)
-const getAllImageSources = (imagesDataFromDB: string | null | undefined): string[] => {
-    if (!imagesDataFromDB || typeof imagesDataFromDB !== 'string') {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(imagesDataFromDB);
-        if (Array.isArray(parsed)) {
-            return parsed.filter(s => typeof s === 'string' && s.length > 0).map(s => s.startsWith('data:image/') ? s : `data:image/jpeg;base64,${s}`);
-        } else if (typeof parsed === 'string' && parsed.length > 0) {
-            return [parsed.startsWith('data:image/') ? parsed : `data:image/jpeg;base64,${parsed}`];
-        }
-    } catch (e) {
-        if (imagesDataFromDB.length > 0) {
-            return [imagesDataFromDB.startsWith('data:image/') ? imagesDataFromDB : `data:image/jpeg;base64,${imagesDataFromDB}`];
-        }
-    }
-    return [];
-};
-
-// Post Interface
+// Interface Post - Définition UNIQUE pour CE FICHIER.
+// Si vous ne voulez pas de fichier séparé, vous devrez COPIER CETTE DÉFINITION EXACTEMENT
+// dans TOUS les autres fichiers qui utilisent "Post" (pages et composants de carte).
 interface Post {
     id: number;
     titre: string;
     description: string;
-    images: string;
-    imageSources?: string[];
+    images: string[]; // <-- CECI DOIT ÊTRE string[] PARTOUT
     prix?: string;
-    type: 'vente' | 'realisation'; // Projects can be 'vente' or 'realisation'
-    sousType?: string; // Will be 'ingenieur' or similar
+    type: 'vente' | 'realisation';
+    sousType?: string;
 }
 
+// *** IMPORTANT : La fonction getAllImageSources est SUPPRIMÉE d'ici. ***
+// Elle est remplacée par l'attente que le backend envoie 'images' comme string[].
+// Si votre backend envoie toujours une chaîne JSON, le problème persiste côté backend.
+
 export default function Ingenieur() {
-    const [allIngenieurPosts, setAllIngenieurPosts] = useState<Post[]>([]); // All 'Ingenieur' posts
+    const [allIngenieurPosts, setAllIngenieurPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // References for 'Réalisations' and 'Ventes' sections
     const realisationsSectionRef = useRef<HTMLDivElement>(null);
     const ventesSectionRef = useRef<HTMLDivElement>(null);
 
-    // Scroll function
-    const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
-  if (ref.current) {
-    ref.current.scrollIntoView({ behavior: 'smooth' });
-  }
-};
-
+    const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
+        if (ref.current) {
+            ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, []);
 
     useEffect(() => {
         const fetchIngenieurPosts = async () => {
             setLoading(true);
             setError(null);
             try {
-                // API call to the /ingenieur route (adjust if your backend uses a different name)
+                // S'attend à ce que l'API renvoie des objets où 'images' est déjà un tableau de chaînes
                 const response = await axios.get<Post[]>("https://batiproingenieuriebackend.onrender.com/etude");
-                
-                const processedPosts = response.data.map(post => ({
-                    ...post,
-                    imageSources: getAllImageSources(post.images)
-                }));
-                
-                setAllIngenieurPosts(processedPosts); // Store all 'Ingenieur' posts here
+                setAllIngenieurPosts(response.data);
             } catch (err) {
                 console.error("Erreur de chargement des études d'ingénieur:", err);
                 setError("Échec du chargement des projets d'études d'ingénieur.");
@@ -82,11 +56,9 @@ export default function Ingenieur() {
         fetchIngenieurPosts();
     }, []);
 
-    // Filter posts for 'Réalisations' and 'Ventes' sections
     const realisationsIngenieur = allIngenieurPosts.filter(post => post.type === 'realisation');
     const ventesIngenieur = allIngenieurPosts.filter(post => post.type === 'vente');
 
-    // Display Loader during loading
     if (loading) {
         return (
             <div className="Ingenieur">
@@ -98,7 +70,6 @@ export default function Ingenieur() {
         );
     }
 
-    // Display error message
     if (error) {
         return (
             <div className="Ingenieur">
@@ -117,7 +88,6 @@ export default function Ingenieur() {
                     Étude d'Ingénieur
                 </h1>
 
-                {/* Navigation buttons (only if corresponding category has items) */}
                 <div className="flex justify-center space-x-4 mb-10">
                     {realisationsIngenieur.length > 0 && (
                         <button
@@ -136,8 +106,7 @@ export default function Ingenieur() {
                         </button>
                     )}
                 </div>
-                
-                {/* Réalisations Section for Étude d'Ingénieur */}
+
                 {realisationsIngenieur.length > 0 ? (
                     <section ref={realisationsSectionRef} className="mb-12 pt-4" id="realisations-ingenieur-section">
                         <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-6">
@@ -151,13 +120,12 @@ export default function Ingenieur() {
                     </section>
                 ) : (
                     realisationsIngenieur.length === 0 && allIngenieurPosts.length > 0 && (
-                         <p className="text-center text-gray-600 text-lg mb-12">
-                             Aucune réalisation d'étude d'ingénieur disponible pour le moment.
-                         </p>
+                        <p className="text-center text-gray-600 text-lg mb-12">
+                            Aucune réalisation d'étude d'ingénieur disponible pour le moment.
+                        </p>
                     )
                 )}
 
-                {/* Ventes Section for Étude d'Ingénieur */}
                 {ventesIngenieur.length > 0 ? (
                     <section ref={ventesSectionRef} className="mb-12 pt-4" id="ventes-ingenieur-section">
                         <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-teal-500 pb-2 mb-6">
@@ -177,7 +145,6 @@ export default function Ingenieur() {
                     )
                 )}
 
-                {/* Message if NO posts at all (neither sales nor realisations) are loaded */}
                 {allIngenieurPosts.length === 0 && !loading && !error && (
                     <p className="text-center text-gray-600 text-lg">
                         Aucun projet d'étude d'ingénieur disponible pour le moment dans aucune catégorie.
