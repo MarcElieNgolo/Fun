@@ -13,7 +13,7 @@ CORS(app)  # Permet le partage de ressources entre serveurs
 
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify({"message": "Bienvenue sur le backend"}), 200
+    return jsonify({"message": "Bienvenue sur le backend Batipro Ingenieurie"}), 200
 
 # Connexion à la base de données PostgreSQL
 def get_db_connection():
@@ -27,8 +27,10 @@ def get_db_connection():
         )
         return conn
     except psycopg2.Error as e:
-        print(f"Erreur de connexion à la base de données: {e}")
-        raise # Rélance l'exception pour que l'appelant puisse la gérer (ex: renvoyer 500)
+        print(f"Erreur CRITIQUE de connexion à la base de données: {e}")
+        # En production, il est crucial de ne pas exposer les détails de l'erreur
+        # et de loguer correctement.
+        raise # Rélancer l'exception pour être gérée par les routes.
 
 # Création de la table si elle n'existe pas
 def create_table_if_not_exists():
@@ -43,14 +45,15 @@ def create_table_if_not_exists():
                 titre TEXT NOT NULL,
                 description TEXT NOT NULL,
                 prix TEXT,
-                images TEXT NOT NULL, -- La colonne images stockera toujours du TEXT (chaîne JSON)
-                type TEXT NOT NULL,
-                sousType TEXT
+                images TEXT NOT NULL, -- Stockera le JSON des images sous forme de texte
+                type TEXT NOT NULL,   -- Champ 'type' (ex: realisation)
+                sousType TEXT         -- Champ 'sousType' (ex: architecture, ecologique)
             );
         """)
         conn.commit()
+        print("Table 'post' vérifiée/créée avec succès.")
     except Exception as e:
-        print(f"Erreur lors de la création de la table: {e}")
+        print(f"Erreur lors de la vérification/création de la table: {e}")
     finally:
         if cursor:
             cursor.close()
@@ -62,16 +65,17 @@ create_table_if_not_exists()
 
 # Route pour ajouter un post
 @app.route("/post", methods=["POST"])
-def recevoir_post():
+def add_post():
     data = request.get_json()
     titre = data.get("titre")
     description = data.get("description")
     type_ = data.get("type")
     sous_type = data.get("sousType")
     prix = data.get("prix")
-    images = data.get("images") # Ceci devrait être un tableau d'URLs depuis le frontend
+    images = data.get("images") # Devrait être une liste d'URLs ou de Data URLs
 
-    if not titre or not description or not type_ or not images:
+    # Validation des champs obligatoires
+    if not all([titre, description, type_, images]):
         return jsonify({"error": "Champs obligatoires (titre, description, type, images) manquants."}), 400
 
     conn = None
@@ -83,12 +87,12 @@ def recevoir_post():
         INSERT INTO post (titre, description, prix, images, type, sousType)
         VALUES (%s, %s, %s, %s, %s, %s)
         """
-        # Convertit le tableau Python 'images' en une chaîne JSON pour le stockage en DB
+        # Convertit la liste Python 'images' en une chaîne JSON pour le stockage en TEXT dans la DB
         cursor.execute(sql, (
             titre,
             description,
             prix,
-            json.dumps(images), # json.dumps() est ESSENTIEL ici pour stocker la liste correctement
+            json.dumps(images), # json.dumps est ESSENTIEL pour stocker une liste
             type_,
             sous_type
         ))
@@ -96,7 +100,7 @@ def recevoir_post():
         return jsonify({"message": "Données insérées avec succès."}), 201
 
     except Exception as e:
-        print("Erreur PostgreSQL lors de l'insertion:", e)
+        print(f"Erreur PostgreSQL lors de l'insertion d'un post: {e}")
         return jsonify({"error": f"Erreur base de données lors de l'insertion: {str(e)}"}), 500
     finally:
         if cursor:
@@ -131,35 +135,36 @@ def delete_item(item_id):
         if conn:
             conn.close()
 
-# Fonction utilitaire générique pour récupérer et parser (réintroduite pour la propreté)
-# Cette fonction est interne et n'a pas de route associée.
-def _fetch_and_parse_posts(query, params=None):
+# Fonction utilitaire interne pour récupérer et désérialiser les posts
+# Elle s'assure que le champ 'images' est une liste Python avant de renvoyer.
+def _fetch_posts(query, params=None):
     conn = None
     cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(query, params)
-        posts = cursor.fetchall()
+        posts_raw = cursor.fetchall()
 
-        posts_parsed = []
+        posts_processed = []
         column_names = [desc[0] for desc in cursor.description]
-        for post in posts:
-            post_dict = dict(zip(column_names, post))
-            # C'est ICI que l'on s'assure que 'images' est un tableau pour le frontend
+
+        for post_tuple in posts_raw:
+            post_dict = dict(zip(column_names, post_tuple))
+            # Désérialisation du champ 'images' de chaîne JSON à liste Python
             if 'images' in post_dict and isinstance(post_dict['images'], str):
                 try:
                     post_dict['images'] = json.loads(post_dict['images'])
                 except json.JSONDecodeError:
-                    # Si la chaîne n'est pas un JSON valide, ou si elle est vide/corrompue
-                    post_dict['images'] = [] # Retourne un tableau vide pour éviter les erreurs
-            posts_parsed.append(post_dict)
-        return posts_parsed
+                    # Gérer les cas où la chaîne n'est pas un JSON valide ou est vide
+                    print(f"Avertissement: Impossible de parser le champ images '{post_dict['images']}'. Retourne une liste vide.")
+                    post_dict['images'] = []
+            posts_processed.append(post_dict)
+        return posts_processed
 
     except Exception as e:
-        print(f"Erreur lors de la récupération et du parsing des posts: {e}")
-        # Rélance l'exception pour que les routes l'attrapent et renvoient une erreur 500
-        raise
+        print(f"Erreur lors de l'exécution de la requête ou du traitement des posts: {e}")
+        raise # Rélancer l'exception pour que la route gère l'erreur 500
     finally:
         if cursor:
             cursor.close()
@@ -170,59 +175,66 @@ def _fetch_and_parse_posts(query, params=None):
 @app.route("/recup", methods=["GET"])
 def get_all_posts():
     try:
-        posts = _fetch_and_parse_posts("SELECT * FROM post")
+        posts = _fetch_posts("SELECT * FROM post ORDER BY id DESC") # Ajout d'un tri pour l'ordre
         return jsonify(posts)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Routes spécifiques GET pour chaque type/sousType
+# Basé sur votre capture d'écran où 'soustype' contient 'architecture' etc.
+# Si vous voulez filtrer par la colonne 'type', changez 'sousType' par 'type' dans la requête SQL.
 
-# Routes spécifiques GET pour chaque type (codées "à la dure" comme demandé)
 @app.route("/architecture", methods=["GET"])
-def get_architecture():
+def get_architecture_posts():
     try:
-        # Utilise la fonction utilitaire interne pour éviter la répétition de code
-        # et assurer que 'images' est correctement parsé.
-        posts = _fetch_and_parse_posts("SELECT * FROM post WHERE type = %s", ("architecture",))
+        # Filtre sur sousType = 'architecture' selon votre DB
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("architecture",))
         return jsonify(posts)
     except Exception as e:
-        print(f"Erreur lors de la récupération des posts d'architecture: {e}")
+        print(f"Erreur lors de la récupération des posts 'architecture': {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/ecologique", methods=["GET"])
-def get_ecologique():
+def get_ecologique_posts():
     try:
-        posts = _fetch_and_parse_posts("SELECT * FROM post WHERE type = %s", ("ecologique",))
+        # Filtre sur sousType = 'ecologique'
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("ecologique",))
         return jsonify(posts)
     except Exception as e:
-        print(f"Erreur lors de la récupération des posts écologiques: {e}")
+        print(f"Erreur lors de la récupération des posts 'ecologique': {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/terrain", methods=["GET"])
-def get_terrain():
+def get_terrain_posts():
     try:
-        posts = _fetch_and_parse_posts("SELECT * FROM post WHERE type = %s", ("terrain",))
+        # Filtre sur sousType = 'terrain'
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("terrain",))
         return jsonify(posts)
     except Exception as e:
-        print(f"Erreur lors de la récupération des posts de terrain: {e}")
+        print(f"Erreur lors de la récupération des posts 'terrain': {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/classique", methods=["GET"])
-def get_classique():
+def get_classique_posts():
     try:
-        posts = _fetch_and_parse_posts("SELECT * FROM post WHERE type = %s", ("classique",))
+        # Filtre sur sousType = 'classique'
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("classique",))
         return jsonify(posts)
     except Exception as e:
-        print(f"Erreur lors de la récupération des posts classiques: {e}")
+        print(f"Erreur lors de la récupération des posts 'classique': {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/etude", methods=["GET"])
-def get_etude():
+def get_etude_posts():
     try:
-        posts = _fetch_and_parse_posts("SELECT * FROM post WHERE type = %s", ("etude",))
+        # Filtre sur sousType = 'etude'
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("etude",))
         return jsonify(posts)
     except Exception as e:
-        print(f"Erreur lors de la récupération des posts d'étude: {e}")
+        print(f"Erreur lors de la récupération des posts 'etude': {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    # debug=True est utile en développement pour avoir des messages d'erreur détaillés.
+    # EN PRODUCTION, METTEZ debug=False.
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
