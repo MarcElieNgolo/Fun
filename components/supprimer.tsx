@@ -1,79 +1,32 @@
+// Suppression.tsx
 import axios from "axios";
-import { useState , useCallback , useEffect } from "react";
-import VoletVente from "./suppression_outils/ventes";
-import VoletRealisation from "./suppression_outils/realisation";
+import { useState, useCallback, useEffect } from "react";
+import VoletVente from "./suppression_outils/ventes"; // Assurez-vous que le chemin est correct
+import VoletRealisation from "./suppression_outils/realisation"; // Assurez-vous que le chemin est correct
 
-
-type Vente = ProcessedItem & {
-  type: "vente";
-  prix: string; // Obligatoire ici
-};
-
-
-type RawItem = {
+// Définition des types pour correspondre précisément à la réponse du backend
+type RawItemFromBackend = {
   id: number;
   titre: string;
   description: string;
-  images: string;
+  images: string[]; // <-- LE BACKEND ENVOIE DÉSORMAIS UN TABLEAU DE CHAÎNES
   type: string;
-  prix?: string;
+  sousType?: string; // Ajouté car le backend envoie aussi ce champ
+  prix?: string; // Peut être optionnel pour certaines entrées
 };
 
-type ProcessedItem = RawItem & {
-  imageSources: string[];
+// Type pour les ventes (avec le prix obligatoire)
+// Utilise le type RawItemFromBackend comme base
+type Vente = RawItemFromBackend & {
+  type: "vente"; // Surcharge pour s'assurer que c'est bien "vente"
+  prix: string; // Le prix est obligatoire pour une vente
 };
 
-const getAllImageSources = (imagesDataFromDB: string | null | undefined): string[] => {
-    if (!imagesDataFromDB || typeof imagesDataFromDB !== 'string') {
-        return [];
-    }
-
-    let processedStrings: string[] = [];
-    let tempString = imagesDataFromDB.trim();
-
-    if (tempString.startsWith('"') && tempString.endsWith('"')) {
-        tempString = tempString.substring(1, tempString.length - 1);
-    }
-    if (tempString.startsWith('\\"') && tempString.endsWith('\\"')) {
-        tempString = tempString.substring(2, tempString.length - 2);
-    }
-
-    if (tempString.startsWith('[') && tempString.endsWith(']')) {
-        try {
-            const parsedArray = JSON.parse(tempString);
-            if (Array.isArray(parsedArray)) {
-                processedStrings = parsedArray.filter(s => typeof s === 'string' && s.length > 0);
-            }
-        } catch (e) {
-            console.warn("Échec du parsing JSON, tentative de split par virgule/nettoyage manuel:", e);
-            processedStrings = tempString.split(',').map(s => s.trim());
-        }
-    } else {
-        processedStrings = tempString.split(',').map(s => s.trim());
-    }
-
-    return processedStrings
-        .filter(s => s.length > 0)
-        .map(s => {
-            let finalString = s;
-            if (finalString.startsWith('"') && finalString.endsWith('"')) {
-                finalString = finalString.substring(1, finalString.length - 1);
-            }
-            if (finalString.startsWith('\\"') && finalString.endsWith('\\"')) {
-                finalString = finalString.substring(2, finalString.length - 2);
-            }
-
-            if (!finalString.startsWith('data:image/')) {
-                return `data:image/jpeg;base64,${finalString}`; // <<< IMPORTANT: Ajustez le type MIME !
-            }
-            return finalString;
-        })
-        .filter(s => s.startsWith('data:image/'));
-};
-
+// Pas besoin de ProcessedItem ou getAllImageSources si le backend fait le travail
+// Le backend s'assure déjà que `images` est un `string[]`
 
 export default function Suppression() {
-  const [data, setData] = useState<ProcessedItem[]>([]);
+  const [data, setData] = useState<RawItemFromBackend[]>([]); // État principal pour toutes les données
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,12 +36,10 @@ export default function Suppression() {
     try {
       const response = await axios.get("https://batiproingenieuriebackend.onrender.com/recup");
       
-      const processedData: ProcessedItem[] = response.data.map((item: RawItem) => ({
-        ...item,
-        imageSources: getAllImageSources(item.images),
-      }));
+      // Ici, response.data est déjà un tableau d'objets où 'images' est un tableau de chaînes.
+      // Pas besoin de post-traitement complexe comme getAllImageSources.
+      setData(response.data); 
 
-      setData(processedData);
     } catch (err) {
       console.error("Erreur lors de la récupération des données:", err);
       setError("Impossible de charger les données. Veuillez réessayer plus tard.");
@@ -103,10 +54,11 @@ export default function Suppression() {
 
   const handleDelete = useCallback(async (id: number, itemType: 'vente' | 'realisation') => {
     try {
-
       await axios.delete(`https://batiproingenieuriebackend.onrender.com/delete/${id}`);
 
-      setData(prevData => prevData.filter(item => !(item.id === id && item.type === itemType)));
+      // Filtrer les données après suppression
+      setData(prevData => prevData.filter(item => item.id !== id)); // Suppression basée uniquement sur l'ID, plus robuste
+
       alert(`${itemType} de l'ID ${id} supprimée avec succès.`);
 
     } catch (err) {
@@ -115,9 +67,13 @@ export default function Suppression() {
     }
   }, []);
 
+  // Filtrer les données pour les passer aux composants enfants
   const realisationsToDisplay = data.filter(item => item.type === "realisation");
-  const ventesToDisplay: Vente[] = data
-  .filter((item): item is Vente => item.type === "vente" && typeof item.prix === "string");
+
+  // Filtrage pour les ventes, assurant que 'prix' est une chaîne et que le type est 'vente'
+  const ventesToDisplay: Vente[] = data.filter((item): item is Vente => 
+    item.type === "vente" && typeof item.prix === "string"
+  );
 
 
   if (loading) {

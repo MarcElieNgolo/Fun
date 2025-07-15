@@ -1,14 +1,16 @@
 // VoletVente.tsx
 import React, { useState } from "react";
 
-// Déclaration de type pour une vente (avec le champ imageSources déjà parsé)
+// Déclaration de type pour une vente
 type Vente = {
   id: number;
   titre: string;
   description: string;
-  images: string;
-  imageSources: string[]; // Le tableau des sources d'images Base64, prêt à l'emploi
+  images: string[]; // <-- CORRECTION ICI : 'images' est un tableau de chaînes
   prix: string;
+  type: string;     // Ajouté pour correspondre à la structure du backend
+  sousType?: string; // Ajouté pour correspondre à la structure du backend
+  // imageSources n'est plus nécessaire si 'images' est déjà le tableau
 };
 
 interface VoletVenteProps {
@@ -25,7 +27,8 @@ export default function VoletVente({ ventes, onDelete }: VoletVenteProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {ventes.length > 0 ? (
           ventes.map((post) => {
-            const allImageSources = post.imageSources; // Le tableau d'images est déjà prêt
+            // Utilisez directement post.images qui est maintenant correctement typé
+            const allImageSources = post.images;
 
             return (
               <div
@@ -33,7 +36,7 @@ export default function VoletVente({ ventes, onDelete }: VoletVenteProps) {
                 className="bg-white shadow-xl rounded-lg overflow-hidden flex flex-col h-full"
               >
                 {/* Conditionnel pour afficher le slider ou le message "pas d'image" */}
-                {allImageSources.length > 0 ? (
+                {allImageSources && allImageSources.length > 0 ? ( // Ajout d'une vérification pour s'assurer que allImageSources n'est pas null/undefined
                   <ImageSlider images={allImageSources} title={post.titre} />
                 ) : (
                   <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500">
@@ -68,6 +71,7 @@ export default function VoletVente({ ventes, onDelete }: VoletVenteProps) {
 }
 
 // --- Composant ImageSlider pour gérer le défilement des images ---
+// Ce composant reste inchangé car il est déjà conçu pour recevoir un tableau de chaînes.
 interface ImageSliderProps {
     images: string[];
     title: string; // Pour le texte alternatif de l'image
@@ -93,7 +97,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images, title }) => {
                 <img
                     src={images[currentImageIndex]}
                     alt={`${title} - Image ${currentImageIndex + 1}`}
-                    className="max-w-full max-h-full object-contain" // Utilise object-contain pour éviter de couper l'image
+                    className="max-w-full max-h-full object-contain"
                 />
             </div>
 
@@ -104,14 +108,14 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images, title }) => {
                         className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-200 z-10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75"
                         aria-label="Image précédente"
                     >
-                        &lt; {/* Flèche gauche */}
+                        &lt;
                     </button>
                     <button
                         onClick={goToNextImage}
                         className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-200 z-10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75"
                         aria-label="Image suivante"
                     >
-                        &gt; {/* Flèche droite */}
+                        &gt;
                     </button>
                 </>
             )}
@@ -130,4 +134,4 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images, title }) => {
             )}
         </div>
     );
-};  
+};
