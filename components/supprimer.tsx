@@ -81,7 +81,7 @@ export default function Suppression() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get("http://127.0.0.1:5000/recup");
+      const response = await axios.get("https://batiproingenieuriebackend.onrender.com/recup");
       
       const processedData: ProcessedItem[] = response.data.map((item: RawItem) => ({
         ...item,
@@ -104,7 +104,7 @@ export default function Suppression() {
   const handleDelete = useCallback(async (id: number, itemType: 'vente' | 'realisation') => {
     try {
 
-      await axios.delete(`http://127.0.0.1:5000/delete/${id}`);
+      await axios.delete(`https://batiproingenieuriebackend.onrender.com/delete/${id}`);
 
       setData(prevData => prevData.filter(item => !(item.id === id && item.type === itemType)));
       alert(`${itemType} de l'ID ${id} supprimée avec succès.`);

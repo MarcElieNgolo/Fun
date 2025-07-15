@@ -86,7 +86,7 @@ export default function Classique() {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get<Post[]>("http://127.0.0.1:5000/classique");
+                const response = await axios.get<Post[]>("https://batiproingenieuriebackend.onrender.com/classique");
                 
                 const processedPosts = response.data.map(post => ({
                     ...post,

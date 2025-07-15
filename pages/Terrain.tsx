@@ -63,7 +63,7 @@ export default function Terrain() {
             setError(null);
             try {
                 // Appel API à la route /terrain
-                const response = await axios.get<Post[]>("http://127.0.0.1:5000/terrain");
+                const response = await axios.get<Post[]>("https://batiproingenieuriebackend.onrender.com/terrain");
                 
                 const processedPosts = response.data.map(post => ({
                     ...post,

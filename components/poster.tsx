@@ -90,7 +90,7 @@ export default function FormulairePost() {
     }
 
     axios
-      .post("http://127.0.0.1:5000/post", formData)
+      .post("https://batiproingenieuriebackend.onrender.com/post", formData)
       .then(response => {
         console.log("Réponse du serveur:", response.data);
         alert("Requête faite avec succès !");

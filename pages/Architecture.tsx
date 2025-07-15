@@ -97,7 +97,7 @@ export default function Architecture() {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get<Post[]>("http://127.0.0.1:5000/architecture");
+                const response = await axios.get<Post[]>("https://batiproingenieuriebackend.onrender.com/architecture");
                 
                 // Filtrer les posts pour ne garder que ceux avec sousType 'Architecture'
                 const filteredPosts = response.data.filter(

@@ -63,7 +63,7 @@ export default function Ingenieur() {
             setError(null);
             try {
                 // API call to the /ingenieur route (adjust if your backend uses a different name)
-                const response = await axios.get<Post[]>("http://127.0.0.1:5000/etude");
+                const response = await axios.get<Post[]>("https://batiproingenieuriebackend.onrender.com/etude");
                 
                 const processedPosts = response.data.map(post => ({
                     ...post,

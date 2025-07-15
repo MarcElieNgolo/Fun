@@ -63,7 +63,7 @@ export default function Ecologique() {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get<Post[]>("http://127.0.0.1:5000/ecologique");
+                const response = await axios.get<Post[]>("https://batiproingenieuriebackend.onrender.com/ecologique");
                 
                 const processedPosts = response.data.map(post => ({
                     ...post,
