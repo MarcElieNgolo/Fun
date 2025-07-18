@@ -1,6 +1,6 @@
 // src/pages/Rang.tsx
 import Navbar from "../components/navbar";
-import React, { useState, useCallback } from "react"; // Importez useCallback
+import React, { useState, useCallback , useEffect } from "react"; // Importez useCallback
 import Choix from "../components/choixpersonnalite";
 import Formulaire from "../components/formulaire";
 import ChoixAdmin from "../components/choixDadmin";
@@ -39,6 +39,11 @@ export default function Rang() {
   const handleDeleteAction = useCallback(() => {
     setCurrentStep("deletePost");
   }, []);
+
+  useEffect(() => {
+  fetch("https://batiproingenieuriebackend.onrender.com/");
+  }, []);
+
 
   // Fonction de soumission du formulaire de connexion
   const handleLoginSubmit = useCallback(

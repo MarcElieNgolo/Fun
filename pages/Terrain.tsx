@@ -10,7 +10,7 @@ interface Post {
   id: number;
   titre: string;
   description: string;
-  images: string[]; // Chaque image est déjà une data:image/...
+  images: string[];
   prix?: string;
   type: "vente" | "realisation";
   sousType?: string;
@@ -24,14 +24,18 @@ export default function Terrain() {
   const realisationsRef = useRef<HTMLDivElement>(null);
   const ventesRef = useRef<HTMLDivElement>(null);
 
-  const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
+  const scrollToSection = useCallback(
+    (ref: React.RefObject<HTMLDivElement>) => {
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    []
+  );
 
   useEffect(() => {
     const fetchTerrainPosts = async () => {
       setLoading(true);
       setError(null);
+
       try {
         const response = await axios.get<Post[]>(
           "https://batiproingenieuriebackend.onrender.com/terrain"
@@ -41,20 +45,21 @@ export default function Terrain() {
         console.error("Erreur de chargement des posts Terrain:", err);
         setError("Échec du chargement des projets de terrains.");
       } finally {
-        setLoading(false);
+        // Micro-délai pour garantir que le loader disparaisse juste après le rendu
+        setTimeout(() => setLoading(false), 50);
       }
     };
 
     fetchTerrainPosts();
   }, []);
 
-  const realisations = allTerrainPosts.filter((post) => post.type === "realisation");
-  const ventes = allTerrainPosts.filter((post) => post.type === "vente");
+  const realisations = allTerrainPosts.filter((p) => p.type === "realisation");
+  const ventes = allTerrainPosts.filter((p) => p.type === "vente");
 
   if (loading) {
     return (
       <div className="Terrain">
-        <Navbar admin />
+        <Navbar admin={true} />
         <div className="text-center p-8 text-lg text-gray-700">
           <Loader />
         </div>
@@ -65,7 +70,7 @@ export default function Terrain() {
   if (error) {
     return (
       <div className="Terrain">
-        <Navbar admin />
+        <Navbar admin={true} />
         <div className="text-center p-8 text-lg text-red-600">{error}</div>
       </div>
     );
@@ -73,14 +78,13 @@ export default function Terrain() {
 
   return (
     <div className="Terrain">
-      <Navbar admin />
+      <Navbar admin={true} />
 
       <div className="container mx-auto p-6">
         <h1 className="text-4xl font-extrabold text-center text-gray-900 mb-8">
           Terrains
         </h1>
 
-        {/* Boutons */}
         {(realisations.length > 0 || ventes.length > 0) && (
           <div className="flex justify-center space-x-4 mb-10">
             {realisations.length > 0 && (
@@ -102,9 +106,12 @@ export default function Terrain() {
           </div>
         )}
 
-        {/* Réalisations */}
         {realisations.length > 0 ? (
-          <section ref={realisationsRef} className="mb-12 pt-4" id="realisations-terrain-section">
+          <section
+            ref={realisationsRef}
+            className="mb-12 pt-4"
+            id="realisations-terrain-section"
+          >
             <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-indigo-500 pb-2 mb-6">
               Réalisations de Terrains
             </h2>
@@ -122,9 +129,12 @@ export default function Terrain() {
           )
         )}
 
-        {/* Ventes */}
         {ventes.length > 0 ? (
-          <section ref={ventesRef} className="mb-12 pt-4" id="ventes-terrain-section">
+          <section
+            ref={ventesRef}
+            className="mb-12 pt-4"
+            id="ventes-terrain-section"
+          >
             <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-purple-500 pb-2 mb-6">
               Terrains à Vendre
             </h2>
@@ -142,7 +152,6 @@ export default function Terrain() {
           )
         )}
 
-        {/* Aucun post du tout */}
         {allTerrainPosts.length === 0 && (
           <p className="text-center text-gray-600 text-lg">
             Aucun terrain disponible pour le moment dans aucune catégorie.

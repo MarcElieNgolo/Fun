@@ -1,4 +1,4 @@
-// Architecture.tsx
+// src/pages/Architecture.tsx
 import Navbar from "../components/navbar";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import CarteRealisation from "../components/carteRealisation";
@@ -32,12 +32,12 @@ export default function Architecture() {
     const fetchPosts = async () => {
       setLoading(true);
       setError(null);
+
       try {
-        const resp = await axios.get<any[]>( 
+        const resp = await axios.get<any[]>(
           "https://batiproingenieuriebackend.onrender.com/architecture"
         );
 
-        // On transforme chaque objet brut en Post typé
         const posts: Post[] = resp.data.map((item) => ({
           id: item.id,
           titre: item.titre,
@@ -45,8 +45,7 @@ export default function Architecture() {
           images: Array.isArray(item.images) ? item.images : [],
           prix: item.prix,
           type: item.type === "vente" ? "vente" : "realisation",
-          // Ici on prend le champ JSON "soustype"
-          sousType: item.soustype ?? item.sousType
+          sousType: item.soustype ?? item.sousType,
         }));
 
         setAllPosts(posts);
@@ -54,7 +53,8 @@ export default function Architecture() {
         console.error(err);
         setError("Impossible de charger les projets. Réessaie plus tard.");
       } finally {
-        setLoading(false);
+        // Micro-délai pour assurer le rendu du DOM avant de masquer le loader
+        setTimeout(() => setLoading(false), 50);
       }
     };
 

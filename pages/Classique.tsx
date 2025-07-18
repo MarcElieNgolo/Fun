@@ -24,14 +24,18 @@ export default function Classique() {
   const realisationsRef = useRef<HTMLDivElement>(null);
   const ventesRef = useRef<HTMLDivElement>(null);
 
-  const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
+  const scrollToSection = useCallback(
+    (ref: React.RefObject<HTMLDivElement>) => {
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    []
+  );
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       setError(null);
+
       try {
         const resp = await axios.get<any[]>(
           "https://batiproingenieuriebackend.onrender.com/classique"
@@ -54,7 +58,8 @@ export default function Classique() {
           "Impossible de charger les posts classiques. Veuillez réessayer plus tard."
         );
       } finally {
-        setLoading(false);
+        // Micro-délai pour laisser le temps au DOM de se mettre à jour
+        setTimeout(() => setLoading(false), 50);
       }
     };
 
@@ -64,9 +69,7 @@ export default function Classique() {
   const realisationsClassique = classiquePosts.filter(
     (post) => post.type === "realisation"
   );
-  const ventesClassique = classiquePosts.filter(
-    (post) => post.type === "vente"
-  );
+  const ventesClassique = classiquePosts.filter((post) => post.type === "vente");
 
   if (loading) {
     return (

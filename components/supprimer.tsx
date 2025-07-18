@@ -3,77 +3,52 @@ import axios from "axios";
 import { useState, useCallback, useEffect } from "react";
 import VoletVente from "./suppression_outils/ventes";
 import VoletRealisation from "./suppression_outils/realisation";
+import Loader from "./loader/loader"; // ✅ Ajout du loader
 
-// Interface commune utilisée partout
 interface Post {
   id: number;
   titre: string;
   description: string;
-  images: string[]; // tableau de chaînes (urls/base64)
+  images: string[];
   prix?: string;
   type: "vente" | "realisation";
   sousType?: string;
 }
 
-// Données brutes reçues du backend
 interface RawItem {
   id: number;
   titre: string;
   description: string;
-  images: string; // chaîne (json stringifiée, base64 concaténé, etc.)
+  images: string;
   prix?: string;
   type: string;
   sousType?: string;
 }
 
-// Fonction utilitaire pour extraire un tableau d'images à partir de la chaîne 'images'
 const getAllImageSources = (imagesDataFromDB: string | null | undefined): string[] => {
-  if (!imagesDataFromDB || typeof imagesDataFromDB !== "string") {
-    return [];
-  }
+  if (!imagesDataFromDB || typeof imagesDataFromDB !== "string") return [];
 
-  let processedStrings: string[] = [];
-  let tempString = imagesDataFromDB.trim();
+  let temp = imagesDataFromDB.trim();
+  if (temp.startsWith('"') && temp.endsWith('"')) temp = temp.slice(1, -1);
+  if (temp.startsWith('\\"') && temp.endsWith('\\"')) temp = temp.slice(2, -2);
 
-  if (tempString.startsWith('"') && tempString.endsWith('"')) {
-    tempString = tempString.substring(1, tempString.length - 1);
-  }
-  if (tempString.startsWith('\\"') && tempString.endsWith('\\"')) {
-    tempString = tempString.substring(2, tempString.length - 2);
-  }
-
-  if (tempString.startsWith("[") && tempString.endsWith("]")) {
+  let rawList: string[] = [];
+  if (temp.startsWith("[") && temp.endsWith("]")) {
     try {
-      const parsedArray = JSON.parse(tempString);
-      if (Array.isArray(parsedArray)) {
-        processedStrings = parsedArray.filter((s) => typeof s === "string" && s.length > 0);
-      }
-    } catch (e) {
-      console.warn("Échec du parsing JSON, tentative de split par virgule/nettoyage manuel:", e);
-      processedStrings = tempString.split(",").map((s) => s.trim());
+      const parsed = JSON.parse(temp);
+      if (Array.isArray(parsed)) rawList = parsed.filter((s) => typeof s === "string");
+    } catch {
+      rawList = temp.split(",").map((s) => s.trim());
     }
   } else {
-    processedStrings = tempString.split(",").map((s) => s.trim());
+    rawList = temp.split(",").map((s) => s.trim());
   }
 
-  return processedStrings
+  return rawList
     .filter((s) => s.length > 0)
-    .map((s) => {
-      let finalString = s;
-      if (finalString.startsWith('"') && finalString.endsWith('"')) {
-        finalString = finalString.substring(1, finalString.length - 1);
-      }
-      if (finalString.startsWith('\\"') && finalString.endsWith('\\"')) {
-        finalString = finalString.substring(2, finalString.length - 2);
-      }
-
-      // Si ce n’est pas déjà une image en base64 (data URI), on ajoute un prefixe
-      if (!finalString.startsWith("data:image/")) {
-        return `data:image/jpeg;base64,${finalString}`;
-      }
-      return finalString;
-    })
-    .filter((s) => s.startsWith("data:image/"));
+    .map((s) =>
+      s.startsWith("data:image/") ? s : `data:image/jpeg;base64,${s.replace(/^"|"$/g, "")}`
+    );
 };
 
 export default function Suppression() {
@@ -85,16 +60,15 @@ export default function Suppression() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get("https://batiproingenieuriebackend.onrender.com/recup");
+      const response = await axios.get<RawItem[]>(
+        "https://batiproingenieuriebackend.onrender.com/recup"
+      );
 
-      console.log("Données brutes reçues :", response.data);
-
-      // Attention ici : on utilise response.data.map (pas [0].map)
-      const processedData: Post[] = response.data.map((item: RawItem) => ({
+      const processedData: Post[] = response.data.map((item) => ({
         id: item.id,
         titre: item.titre,
         description: item.description,
-        images: getAllImageSources(item.images),
+        images: item.images,
         prix: item.prix,
         type: item.type as "vente" | "realisation",
         sousType: item.sousType,
@@ -102,10 +76,10 @@ export default function Suppression() {
 
       setData(processedData);
     } catch (err) {
-      console.error("Erreur lors de la récupération des données:", err);
+      console.error("Erreur récupération données :", err);
       setError("Impossible de charger les données. Veuillez réessayer plus tard.");
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 50); // ✅ micro-délai pour un rendu fluide
     }
   }, []);
 
@@ -113,24 +87,28 @@ export default function Suppression() {
     fetchData();
   }, [fetchData]);
 
-  // Sépare les ventes et les réalisations dans deux tableaux typés
   const ventesToDisplay = data.filter((item) => item.type === "vente");
   const realisationsToDisplay = data.filter((item) => item.type === "realisation");
 
   const handleDelete = useCallback(async (id: number, itemType: "vente" | "realisation") => {
     try {
-      await axios.delete(`https://batiproingenieuriebackend.onrender.com/delete/${id}`);
-
-      setData((prevData) => prevData.filter((item) => !(item.id === id && item.type === itemType)));
-      alert(`${itemType} de l'ID ${id} supprimée avec succès.`);
+      await axios.delete(
+        `https://batiproingenieuriebackend.onrender.com/delete/${id}`
+      );
+      setData((prev) => prev.filter((item) => !(item.id === id && item.type === itemType)));
+      alert(`${itemType} avec l'ID ${id} supprimée avec succès.`);
     } catch (err) {
-      console.error(`Erreur lors de la suppression de la ${itemType} ${id}:`, err);
+      console.error(`Erreur suppression ${itemType} ${id}:`, err);
       alert(`Erreur lors de la suppression de la ${itemType}.`);
     }
   }, []);
 
   if (loading) {
-    return <div className="text-center text-xl p-8">Chargement des données...</div>;
+    return (
+      <div className="text-center p-8 text-xl text-gray-700">
+        <Loader />
+      </div>
+    );
   }
 
   if (error) {
@@ -144,7 +122,10 @@ export default function Suppression() {
       </h1>
 
       <section className="mb-12">
-        <VoletVente ventes={ventesToDisplay} onDelete={(id) => handleDelete(id, "vente")} />
+        <VoletVente
+          ventes={ventesToDisplay}
+          onDelete={(id) => handleDelete(id, "vente")}
+        />
       </section>
 
       <section>

@@ -24,14 +24,18 @@ export default function Ecologique() {
   const realisationsRef = useRef<HTMLDivElement>(null);
   const ventesRef = useRef<HTMLDivElement>(null);
 
-  const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
+  const scrollToSection = useCallback(
+    (ref: React.RefObject<HTMLDivElement>) => {
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    []
+  );
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       setError(null);
+
       try {
         const resp = await axios.get<any[]>(
           "https://batiproingenieuriebackend.onrender.com/ecologique"
@@ -52,7 +56,8 @@ export default function Ecologique() {
         console.error("Erreur de chargement des posts écologiques:", err);
         setError("Échec du chargement des projets écologiques.");
       } finally {
-        setLoading(false);
+        // Micro-délai pour garantir que le loader disparaisse juste après la mise à jour du DOM
+        setTimeout(() => setLoading(false), 50);
       }
     };
 

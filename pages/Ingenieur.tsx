@@ -24,20 +24,23 @@ export default function Ingenieur() {
   const realisationsRef = useRef<HTMLDivElement>(null);
   const ventesRef = useRef<HTMLDivElement>(null);
 
-  const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
+  const scrollToSection = useCallback(
+    (ref: React.RefObject<HTMLDivElement>) => {
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    []
+  );
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       setError(null);
+
       try {
         const response = await axios.get<any[]>(
           "https://batiproingenieuriebackend.onrender.com/etude"
         );
 
-        // Sécuriser la transformation
         const cleanPosts: Post[] = response.data.map((item) => ({
           id: item.id,
           titre: item.titre,
@@ -53,7 +56,8 @@ export default function Ingenieur() {
         console.error("Erreur de chargement:", err);
         setError("Échec du chargement des études d'ingénieur.");
       } finally {
-        setLoading(false);
+        // Micro-délai pour garantir que le loader disparaisse juste après la mise à jour du DOM
+        setTimeout(() => setLoading(false), 50);
       }
     };
 
@@ -114,7 +118,7 @@ export default function Ingenieur() {
 
         {/* Réalisations */}
         {realisations.length > 0 ? (
-          <section ref={realisationsRef} className="mb-12 pt-4" id="realisations-ingenieur-section">
+          <section ref={realisationsRef} className="mb-12 pt-4">
             <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-6">
               Réalisations d'Études d'Ingénieur
             </h2>
@@ -134,7 +138,7 @@ export default function Ingenieur() {
 
         {/* Ventes */}
         {ventes.length > 0 ? (
-          <section ref={ventesRef} className="mb-12 pt-4" id="ventes-ingenieur-section">
+          <section ref={ventesRef} className="mb-12 pt-4">
             <h2 className="text-3xl font-bold text-gray-800 border-b-2 border-teal-500 pb-2 mb-6">
               Ventes d'Études d'Ingénieur
             </h2>
@@ -152,7 +156,7 @@ export default function Ingenieur() {
           )
         )}
 
-        {/* Rien du tout */}
+        {/* Aucun projet trouvé */}
         {posts.length === 0 && (
           <p className="text-center text-gray-600 text-lg">
             Aucun projet d'étude d'ingénieur trouvé.
