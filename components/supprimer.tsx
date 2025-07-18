@@ -9,7 +9,7 @@ interface Post {
   id: number;
   titre: string;
   description: string;
-  images: string[];
+  images: string;
   prix?: string;
   type: "vente" | "realisation";
   sousType?: string;
@@ -25,31 +25,7 @@ interface RawItem {
   sousType?: string;
 }
 
-const getAllImageSources = (imagesDataFromDB: string | null | undefined): string[] => {
-  if (!imagesDataFromDB || typeof imagesDataFromDB !== "string") return [];
 
-  let temp = imagesDataFromDB.trim();
-  if (temp.startsWith('"') && temp.endsWith('"')) temp = temp.slice(1, -1);
-  if (temp.startsWith('\\"') && temp.endsWith('\\"')) temp = temp.slice(2, -2);
-
-  let rawList: string[] = [];
-  if (temp.startsWith("[") && temp.endsWith("]")) {
-    try {
-      const parsed = JSON.parse(temp);
-      if (Array.isArray(parsed)) rawList = parsed.filter((s) => typeof s === "string");
-    } catch {
-      rawList = temp.split(",").map((s) => s.trim());
-    }
-  } else {
-    rawList = temp.split(",").map((s) => s.trim());
-  }
-
-  return rawList
-    .filter((s) => s.length > 0)
-    .map((s) =>
-      s.startsWith("data:image/") ? s : `data:image/jpeg;base64,${s.replace(/^"|"$/g, "")}`
-    );
-};
 
 export default function Suppression() {
   const [data, setData] = useState<Post[]>([]);

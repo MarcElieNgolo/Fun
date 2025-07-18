@@ -1,11 +1,10 @@
 // src/components/VoletVente.tsx (Modifié)
-import React from "react";
 
 interface Post {
   id: number;
   titre: string;
   description: string;
-  images: string[];
+  images: string;
   prix?: string;
   type: "vente" | "realisation";
   sousType?: string;
