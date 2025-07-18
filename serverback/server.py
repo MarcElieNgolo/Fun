@@ -198,7 +198,7 @@ def get_architecture_posts():
 def get_ecologique_posts():
     try:
         # Filtre sur sousType = 'ecologique'
-        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("ecologique",))
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("construction_ecologique_btsc",))
         return jsonify(posts)
     except Exception as e:
         print(f"Erreur lors de la récupération des posts 'ecologique': {e}")
@@ -218,7 +218,7 @@ def get_terrain_posts():
 def get_classique_posts():
     try:
         # Filtre sur sousType = 'classique'
-        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("classique",))
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("construction_classique_agglo",))
         return jsonify(posts)
     except Exception as e:
         print(f"Erreur lors de la récupération des posts 'classique': {e}")
