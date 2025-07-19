@@ -328,7 +328,7 @@ const rules = [
     }
 ];
 
-export function respondToQuery(query) {
+export function respondToQuery(query:string) {
     const lowerCaseQuery = query.toLowerCase();
 
     for (const rule of rules) {
