@@ -206,14 +206,17 @@ export default function Bot() {
 
     // Function for bot to speak
     const speakResponse = useCallback((text: string): Promise<void> => { // Ajout du typage 'text: string' et retour 'Promise<void>'
+        console.log('speakResponse: Fonction appelée avec le texte:', text);
         return new Promise((resolve) => {
             if (!synthRef.current || !text) {
+                console.log('speakResponse: Synthèse vocale non disponible ou texte vide. Résolution immédiate.');
                 resolve(); // Résoudre sans argument pour Promise<void>
                 return;
             }
 
             // Always cancel previous speech if any
             if (synthRef.current.speaking) {
+                console.log('speakResponse: Annulation de la parole précédente.');
                 synthRef.current.cancel();
             }
 
@@ -232,24 +235,27 @@ export default function Bot() {
             );
             if (frenchVoice) {
                 utterance.voice = frenchVoice;
+                console.log('speakResponse: Voix française trouvée et utilisée:', frenchVoice.name);
             } else {
-                console.warn('No suitable French voice found, using default.');
+                console.warn('speakResponse: Aucune voix française appropriée trouvée, utilisation de la voix par défaut.');
             }
 
             utterance.onstart = () => {
+                console.log('speakResponse: Événement onstart de la synthèse vocale.');
                 setIsSpeaking(true);
             };
             utterance.onend = () => {
-                console.log('Synthèse vocale terminée.');
+                console.log('speakResponse: Événement onend de la synthèse vocale. Synthèse terminée.');
                 setIsSpeaking(false);
                 resolve(); // Résoudre sans argument pour Promise<void>
             };
             utterance.onerror = (event: SpeechSynthesisErrorEvent) => { // Typage de 'event'
-                console.error('Speech synthesis error:', event.error);
+                console.error('speakResponse: Erreur de synthèse vocale:', event.error);
                 setIsSpeaking(false);
                 resolve(); // Résoudre sans argument pour Promise<void>
             };
             synthRef.current.speak(utterance);
+            console.log('speakResponse: Commande de synthèse vocale envoyée.');
         });
     }, []); // No dependencies here, relies on refs for state access
 
@@ -258,15 +264,22 @@ export default function Bot() {
         if (e) e.preventDefault(); // Prevent default form submission if triggered by button
         const messageToSend = voiceInput || input; // Use voiceInput if provided, otherwise current input state
 
-        if (messageToSend.trim() === '') return;
+        console.log('handleSendMessage: Appelée. Input vocal:', voiceInput, 'Input texte:', input);
+
+        if (messageToSend.trim() === '') {
+            console.log('handleSendMessage: Message vide, ignoré.');
+            return;
+        }
 
         // Stop user's recording if active, as a new message is being processed
         if (recognitionRef.current && isRecordingRef.current) {
+            console.log('handleSendMessage: Arrêt de la reconnaissance vocale en cours (message envoyé).');
             manualStopFlagRef.current = true; // Mark as manual stop
             recognitionRef.current.stop(); // This will trigger onend
         }
         // Also stop bot's current speech if any
         if (synthRef.current && synthRef.current.speaking) {
+            console.log('handleSendMessage: Annulation de la parole du bot en cours.');
             synthRef.current.cancel();
             setIsSpeaking(false);
         }
@@ -274,18 +287,31 @@ export default function Bot() {
         const userMessage = { id: Date.now(), text: messageToSend, sender: 'user' };
         setMessages((prevMessages) => [...prevMessages, userMessage]);
         setInput(''); // Clear input after sending
+        console.log('handleSendMessage: Message utilisateur ajouté:', userMessage.text);
 
         // Determine bot response text
         const botResponseText = respondToQuery(userMessage.text);
+        console.log('handleSendMessage: Réponse du bot déterminée:', botResponseText);
+
+        if (!botResponseText || botResponseText.trim() === '') {
+            console.warn("handleSendMessage: respondToQuery a renvoyé une réponse vide ou nulle. Le bot ne répondra pas.");
+            setIsTyping(false); // Ensure typing state is reset
+            setIsSpeaking(false); // Ensure speaking state is reset
+            return; // Exit if no response text
+        }
 
         // NOUVEAU: Le bot parle la réponse AVANT d'écrire
+        console.log('handleSendMessage: Appel de speakResponse...');
         await speakResponse(botResponseText); // Attendre que la synthèse vocale soit terminée
+        console.log('handleSendMessage: speakResponse terminé.');
 
         setIsTyping(true); // Indiquer que le bot est en train d'écrire (après avoir parlé)
+        console.log('handleSendMessage: isTyping mis à true.');
 
         const botMessageId = Date.now() + 1;
         // Add a placeholder message for the bot to type into
         setMessages((prevMessages) => [...prevMessages, { id: botMessageId, text: '', sender: 'bot' }]);
+        console.log('handleSendMessage: Message bot placeholder ajouté.');
 
         let currentBotResponse = '';
         // Progressive typing for text display
@@ -304,6 +330,7 @@ export default function Bot() {
         }
 
         setIsTyping(false); // Bot finished typing
+        console.log('handleSendMessage: isTyping mis à false. Bot a fini de taper.');
 
         // Reset manual stop flag after bot has responded.
         manualStopFlagRef.current = false;
@@ -311,11 +338,11 @@ export default function Bot() {
         // If the user was in recording mode and bot finished typing, we attempt to restart recognition.
         // This is crucial for seamless voice interaction after bot's response.
         if (recognitionRef.current && isRecordingRef.current) {
-            console.log("Bot finished responding, attempting to restart recognition.");
+            console.log("handleSendMessage: Le bot a fini de répondre, tentative de redémarrage de la reconnaissance.");
             try {
                 recognitionRef.current.start();
             } catch (err: any) { // Typage de 'err'
-                console.error('Failed to restart recognition after bot response:', err);
+                console.error('handleSendMessage: Échec du redémarrage de la reconnaissance après la réponse du bot:', err);
             }
         }
 
@@ -324,6 +351,7 @@ export default function Bot() {
     // Initialize SpeechRecognition on component mount
     useEffect(() => {
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            console.log('useEffect[SpeechRecognition]: API de reconnaissance vocale supportée.');
             // Utiliser les types déclarés globalement
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const newRecognition = new SpeechRecognition();
@@ -333,7 +361,7 @@ export default function Bot() {
             newRecognition.maxAlternatives = 1; // Get only one alternative
 
             newRecognition.onstart = () => {
-                console.log('Speech recognition started');
+                console.log('Speech recognition started (onstart event)');
                 setIsRecording(true); // Ensure state is consistent
                 setInput(''); // Clear input field
                 manualStopFlagRef.current = false; // Ensure this is false when starting
@@ -341,7 +369,7 @@ export default function Bot() {
 
             newRecognition.onresult = (event: SpeechRecognitionEvent) => { // Typage de 'event'
                 const transcript = event.results[0][0].transcript; // Get the most confident final transcript
-                console.log('Final Transcript:', transcript);
+                console.log('Speech recognition: Final Transcript:', transcript);
 
                 if (transcript.trim() !== '') {
                     // Update the input field with the final transcript
@@ -354,26 +382,31 @@ export default function Bot() {
             };
 
             newRecognition.onend = () => {
-                console.log('Speech recognition ended');
+                console.log('Speech recognition ended (onend event).');
                 // Only restart if the user *intended* to keep recording (isRecordingRef.current is true)
                 // AND the stop was NOT manually requested (e.g., by clicking stop button or sending text message).
                 // AND the bot is NOT currently speaking or typing.
                 if (isRecordingRef.current && !manualStopFlagRef.current && !isTypingRef.current && !isSpeakingRef.current) {
-                    console.log('Restarting speech recognition due to end of utterance...');
+                    console.log('Speech recognition: Redémarrage de la reconnaissance vocale suite à la fin de l\'énoncé...');
                     // Add a small delay before restarting to prevent rapid restarts
                     setTimeout(() => {
                         if (recognitionRef.current && isRecordingRef.current && !manualStopFlagRef.current && !isTypingRef.current && !isSpeakingRef.current) { // Re-check refs before starting
                             try {
                                 recognitionRef.current.start();
+                                console.log('Speech recognition: Redémarrage réussi après onend.');
                             } catch (err: any) { // Typage de 'err'
-                                console.error('Failed to restart recognition:', err);
+                                console.error('Speech recognition: Échec du redémarrage de la reconnaissance:', err);
                                 setMessages(prev => [...prev, { id: Date.now(), text: "Problème avec le microphone. Essayez de redémarrer l'écoute.", sender: 'bot' }]);
                                 setIsRecording(false); // Stop recording state if it truly failed
                             }
+                        } else {
+                            console.log('Speech recognition: Conditions de redémarrage non remplies après onend.');
+                            setIsRecording(false); // Ensure state is false if not restarting
                         }
                     }, 500); // 500ms delay before restarting
                 } else {
                     // If recording was stopped intentionally by user or bot is busy, ensure state is false
+                    console.log('Speech recognition: Arrêt intentionnel ou bot occupé, pas de redémarrage.');
                     setIsRecording(false);
                     setInput('');
                     manualStopFlagRef.current = false; // Reset the flag
@@ -381,7 +414,7 @@ export default function Bot() {
             };
 
             newRecognition.onerror = (event: SpeechRecognitionErrorEvent) => { // Typage de 'event'
-                console.error('Speech recognition error:', event.error);
+                console.error('Speech recognition error (onerror event):', event.error);
                 setIsRecording(false); // Ensure state is updated on error
                 setInput(''); // Clear input on error
                 manualStopFlagRef.current = false; // Reset the flag on error
@@ -389,36 +422,41 @@ export default function Bot() {
                 if (event.error === 'not-allowed') {
                     setMessages(prev => [...prev, { id: Date.now(), text: "Accès au microphone bloqué. Veuillez autoriser l'accès au microphone dans les paramètres de votre navigateur pour utiliser la fonction vocale.", sender: 'bot' }]);
                 } else if (event.error === 'no-speech') {
-                    console.log('Aucune parole détectée.');
+                    console.log('Speech recognition: Aucune parole détectée.');
                     // If no speech is detected and user still wants to record, attempt restart
                     if (isRecordingRef.current && !isTypingRef.current && !isSpeakingRef.current) {
-                        console.log('No speech detected, attempting restart...');
+                        console.log('Speech recognition: Aucune parole détectée, tentative de redémarrage...');
                         setTimeout(() => {
                             if (recognitionRef.current && isRecordingRef.current && !isTypingRef.current && !isSpeakingRef.current) {
                                 try {
                                     recognitionRef.current.start();
+                                    console.log('Speech recognition: Redémarrage réussi après no-speech.');
                                 } catch (err: any) { // Typage de 'err'
-                                    console.error('Failed to restart recognition after no-speech:', err);
+                                    console.error('Speech recognition: Échec du redémarrage de la reconnaissance après no-speech:', err);
                                     setMessages(prev => [...prev, { id: Date.now(), text: "Problème avec le microphone. Essayez de redémarrer l'écoute.", sender: 'bot' }]);
                                     setIsRecording(false);
                                 }
+                            } else {
+                                console.log('Speech recognition: Conditions de redémarrage non remplies après no-speech.');
+                                setIsRecording(false); // Ensure state is false if not restarting
                             }
                         }, 500); // Small delay for no-speech restart
                     }
                 } else if (event.error === 'aborted') {
-                    console.log('Reconnaissance vocale annulée.');
+                    console.log('Speech recognition: Reconnaissance vocale annulée.');
                 } else {
                     setMessages(prev => [...prev, { id: Date.now(), text: `Une erreur est survenue avec la reconnaissance vocale: ${event.error}`, sender: 'bot' }]);
                 }
                 // If an error occurs and the user still intends to record, try to restart
                 if (isRecordingRef.current && event.error !== 'not-allowed' && event.error !== 'aborted' && !isTypingRef.current && !isSpeakingRef.current) { // Don't restart if permission denied or aborted
-                    console.log('Attempting to restart speech recognition after error...');
+                    console.log('Speech recognition: Tentative de redémarrage de la reconnaissance vocale après erreur...');
                     setTimeout(() => {
                         if (recognitionRef.current && isRecordingRef.current && !isTypingRef.current && !isSpeakingRef.current) { // Re-check ref before starting
                             try {
                                 recognitionRef.current.start();
+                                console.log('Speech recognition: Redémarrage réussi après erreur.');
                             } catch (err: any) { // Typage de 'err'
-                                console.error('Failed to restart recognition after error:', err);
+                                console.error('Speech recognition: Échec du redémarrage de la reconnaissance après erreur (2e tentative):', err);
                             }
                         }
                     }, 100);
@@ -426,12 +464,13 @@ export default function Bot() {
             };
             recognitionRef.current = newRecognition;
         } else {
-            console.warn('Speech Recognition API not supported in this browser.');
+            console.warn('useEffect[SpeechRecognition]: API de reconnaissance vocale non supportée dans ce navigateur.');
             setMessages(prev => [...prev, { id: Date.now(), text: "Désolé, la reconnaissance vocale n'est pas supportée par votre navigateur. Vous pouvez toujours taper vos messages !", sender: 'bot' }]);
         }
 
         return () => {
             if (recognitionRef.current) {
+                console.log('useEffect[SpeechRecognition]: Nettoyage de la reconnaissance vocale.');
                 recognitionRef.current.stop();
                 // Remove event listeners to prevent memory leaks and unexpected behavior
                 recognitionRef.current.onresult = null;
@@ -444,23 +483,25 @@ export default function Bot() {
     // Nouveau: Initialize SpeechSynthesis on component mount
     useEffect(() => {
         if ('speechSynthesis' in window) {
+            console.log('useEffect[SpeechSynthesis]: API de synthèse vocale supportée.');
             const newSynth = window.speechSynthesis;
             synthRef.current = newSynth;
 
             // Ensure voices are loaded (can take a moment)
             if (newSynth.getVoices().length === 0) {
                 newSynth.onvoiceschanged = () => {
-                    console.log('Voices loaded for SpeechSynthesis.');
+                    console.log('useEffect[SpeechSynthesis]: Voix chargées pour la synthèse vocale.');
                 };
             }
         } else {
-            console.warn('Speech Synthesis API not supported in this browser.');
+            console.warn('useEffect[SpeechSynthesis]: API de synthèse vocale non supportée dans ce navigateur.');
             setMessages(prev => [...prev, { id: Date.now(), text: "Désolé, la synthèse vocale n'est pas supportée par votre navigateur.", sender: 'bot' }]);
         }
 
         // Cleanup on unmount
         return () => {
             if (synthRef.current && synthRef.current.speaking) {
+                console.log('useEffect[SpeechSynthesis]: Nettoyage de la synthèse vocale.');
                 synthRef.current.cancel();
             }
         };
@@ -470,26 +511,30 @@ export default function Bot() {
     const toggleRecording = () => {
         if (!recognitionRef.current) {
             setMessages(prev => [...prev, { id: Date.now(), text: "La fonction vocale n'est pas disponible sur ce navigateur.", sender: 'bot' }]);
+            console.log('toggleRecording: Reconnaissance vocale non disponible.');
             return;
         }
 
         // Prevent starting recording if bot is typing or speaking
         if (isTyping || isSpeaking) {
             setMessages(prev => [...prev, { id: Date.now(), text: "BATI-BOT est occupé pour le moment. Veuillez attendre qu'il ait terminé.", sender: 'bot' }]);
+            console.log('toggleRecording: Bot occupé, ne peut pas démarrer l\'enregistrement.');
             return;
         }
 
         if (isRecording) {
+            console.log('toggleRecording: Arrêt de l\'enregistrement (manuel).');
             manualStopFlagRef.current = true; // Set flag when user explicitly stops
             recognitionRef.current.stop(); // This will trigger onend
             setIsRecording(false); // Explicitly set to false when user stops
         } else {
             try {
+                console.log('toggleRecording: Démarrage de l\'enregistrement.');
                 manualStopFlagRef.current = false; // Ensure flag is false when starting
                 recognitionRef.current.start();
                 setIsRecording(true); // Explicitly set to true when user starts
             } catch (err: any) { // Typage de 'err'
-                console.error('Error starting recognition:', err);
+                console.error('toggleRecording: Erreur lors du démarrage de la reconnaissance:', err);
                 setMessages(prev => [...prev, { id: Date.now(), text: "Impossible de démarrer la reconnaissance vocale. Vérifiez les permissions de votre microphone.", sender: 'bot' }]);
                 setIsRecording(false);
             }
@@ -519,6 +564,7 @@ export default function Bot() {
 
             if (internalPathRegex.test(segment)) {
                 const path = segment.toLowerCase();
+                // Capitalize the first letter for display, but keep path lowercase for navigation
                 const pageName = path.substring(1).charAt(0).toUpperCase() + path.substring(2);
                 parts.push(
                     <span
@@ -654,32 +700,126 @@ export default function Bot() {
             type="button"
             onClick={toggleRecording}
             className={`ml-0 sm:ml-2 px-3 py-3 rounded-lg shadow-md flex items-center justify-center flex-shrink-0
-                ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}
-                text-white focus:outline-none focus:ring-2 focus:ring-opacity-75 transition-colors duration-200
-                ${(isTyping || isSpeaking) ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
+                ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}
+                text-white font-bold transition duration-300 ease-in-out transform hover:scale-105
+                ${(isTyping || isSpeaking) ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isTyping || isSpeaking}
-            title={isRecording ? "Arrêter l'écoute" : "Démarrer l'écoute"}
         >
-            {isRecording ? (
-                <FaStopCircle className="w-5 h-5 lg:w-6 lg:h-6 animate-pulse" />
-            ) : (
-                <FaMicrophone className="w-5 h-5 lg:w-6 lg:h-6" />
-            )}
+            {isRecording ? <FaStopCircle className="text-xl" /> : <FaMicrophone className="text-xl" />}
         </button>
         <button
             type="submit"
-            className={`ml-2 px-3 py-3 rounded-lg shadow-md bg-blue-600 hover:bg-blue-700 text-white font-semibold flex-shrink-0
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200
-                ${(input.trim() === '' || isTyping || isSpeaking) ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
-            disabled={input.trim() === '' || isTyping || isSpeaking}
+            className={`ml-2 px-3 py-3 rounded-lg shadow-md flex items-center justify-center flex-shrink-0
+                bg-green-500 hover:bg-green-600 text-white font-bold transition duration-300 ease-in-out transform hover:scale-105
+                ${(isTyping || isSpeaking || input.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isTyping || isSpeaking || input.trim() === ''}
         >
-            <FaPaperPlane className="w-5 h-5 lg:w-6 lg:h-6" />
+            <FaPaperPlane className="text-xl" />
         </button>
     </div>
 </form>
             </div>
+
+            <style >{`
+                @keyframes blink {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0; }
+                }
+                .typing-indicator-dots span {
+                    animation: blink 1s infinite;
+                }
+                .typing-indicator-dots span:nth-child(2) {
+                    animation-delay: 0.2s;
+                }
+                .typing-indicator-dots span:nth-child(3) {
+                    animation-delay: 0.4s;
+                }
+
+                @keyframes wave {
+                    0%, 100% { transform: translateY(0); }
+                    25% { transform: translateY(-3px); }
+                    50% { transform: translateY(0); }
+                    75% { transform: translateY(3px); }
+                }
+                .speaking-wave {
+                    display: flex;
+                    align-items: center;
+                    height: 1em; /* Adjust as needed */
+                }
+                .speaking-wave::before,
+                .speaking-wave::after {
+                    content: '';
+                    display: block;
+                    width: 4px;
+                    height: 10px;
+                    background-color: currentColor;
+                    margin: 0 1px;
+                    animation: wave 1.2s infinite ease-in-out;
+                    border-radius: 2px;
+                }
+                .speaking-wave::before {
+                    animation-delay: -0.2s;
+                }
+                .speaking-wave::after {
+                    animation-delay: -0.4s;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 8px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #888;
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+                }
+
+                @keyframes gradient-animation {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+
+                .animated-gradient-bg {
+                    background: linear-gradient(270deg, #e0f7fa, #bbdefb, #e0f7fa);
+                    background-size: 600% 600%;
+                    animation: gradient-animation 15s ease infinite;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                .animate-fade-in-up {
+                    animation: fadeIn 0.3s ease-out forwards;
+                }
+
+                /* Responsive adjustments */
+                @media (max-width: 640px) {
+                    .flex-col.sm\\:flex-row {
+                        flex-direction: column;
+                    }
+                    .sm\\:rounded-l-lg {
+                        border-radius: 0.5rem; /* rounded-lg */
+                    }
+                    .sm\\:rounded-r-none {
+                        border-top-right-radius: 0.5rem;
+                        border-bottom-right-radius: 0.5rem;
+                    }
+                    .mb-2.sm\\:mb-0 {
+                        margin-bottom: 0.5rem;
+                    }
+                    .ml-0.sm\\:ml-2 {
+                        margin-left: 0;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
