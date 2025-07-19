@@ -430,6 +430,11 @@ const rules = [
         patterns: [/pages du site/i, /quelles sont les pages du site/i, /navigation du site/i, /structure du site/i, /où puis-je trouver des informations/i, /plan du site/i, /visiter le site/i],
         responses: [batiProInfo.sitePages.list]
     },
+     // Site Navigation / Pages (text-only references)
+    {
+        patterns: [/situe/i, /trouve/i, /localise/i, /situé/i,/trouvé/i ,/trouver/i],
+        responses: ["Nous somme situé à Cocody Riviera Palmeraie, Cité du Bonheur, Abidjan, Côte d'Ivoire."]
+    },
     {
         patterns: [/page accueil/i, /page d'accueil/i, /acceuil du site/i, /aller à l'accueil/i, /home page/i],
         responses: [batiProInfo.sitePages.home]
