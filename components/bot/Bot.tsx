@@ -639,45 +639,46 @@ export default function Bot() {
                 </div>
 
                 {/* Input area */}
-                <form onSubmit={(e) => handleSendMessage(e)} className="mt-4 flex p-2 bg-white rounded-lg shadow-lg">
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder={isRecording ? "Écoute... Dites quelque chose." : (isSpeaking ? "BATI-BOT parle..." : "Posez votre question sur BATI-PRO-INGENIERIE...")}
-                        className="flex-1 p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        disabled={isTyping || isSpeaking}
-                    />
+               <form onSubmit={(e) => handleSendMessage(e)} className="mt-4 flex flex-col sm:flex-row p-2 bg-white rounded-lg shadow-lg">
+    <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder={isRecording ? "Écoute... Dites quelque chose." : (isSpeaking ? "BATI-BOT parle..." : "Posez votre question sur BATI-PRO-INGENIERIE...")}
+        className="flex-1 p-3 border border-gray-300 rounded-lg sm:rounded-l-lg sm:rounded-r-none focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 sm:mb-0"
+        disabled={isTyping || isSpeaking}
+    />
 
-                    <button
-                        type="button" // Change to type="button" to prevent form submission
-                        onClick={toggleRecording} // Now toggles continuous recording
-                        className={`ml-2 px-2 py-3 rounded-lg shadow-md flex items-center justify-center flex-shrink-0
-                            ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}
-                            text-white focus:outline-none focus:ring-2 focus:ring-opacity-75 transition-colors duration-200
-                            ${(isTyping || isSpeaking) ? 'opacity-50 cursor-not-allowed' : ''}
-                        `}
-                        disabled={isTyping || isSpeaking} // Disable button if bot is typing or speaking
-                        title={isRecording ? "Arrêter l'écoute" : "Démarrer l'écoute"}
-                    >
-                        {isRecording ? (
-                            <FaStopCircle className="w-2 h-2 lg:w-6 lg:h-6 animate-pulse" /> // Stop icon from react-icons
-                        ) : (
-                            <FaMicrophone className="w-2 h-2 lg:w-6 lg:h-6" /> // Microphone icon from react-icons
-                        )}
-                    </button>
-                    {/* The "Envoyer" button is always visible */}
-                    <button
-                        type="submit"
-                        className={`ml-2 px-2 py-3 rounded-r-lg shadow-md bg-blue-600 hover:bg-blue-700 text-white font-semibold flex-shrink-0
-                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200
-                            ${(input.trim() === '' || isTyping || isSpeaking) ? 'opacity-50 cursor-not-allowed' : ''}
-                        `}
-                        disabled={input.trim() === '' || isTyping || isSpeaking}
-                    >
-                        <FaPaperPlane className="w-2 h-2 lg:w-6 lg:h-6" /> {/* Use FaPaperPlane for send button */}
-                    </button>
-                </form>
+    <div className="boutons flex justify-end sm:justify-start">
+        <button
+            type="button"
+            onClick={toggleRecording}
+            className={`ml-0 sm:ml-2 px-3 py-3 rounded-lg shadow-md flex items-center justify-center flex-shrink-0
+                ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}
+                text-white focus:outline-none focus:ring-2 focus:ring-opacity-75 transition-colors duration-200
+                ${(isTyping || isSpeaking) ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+            disabled={isTyping || isSpeaking}
+            title={isRecording ? "Arrêter l'écoute" : "Démarrer l'écoute"}
+        >
+            {isRecording ? (
+                <FaStopCircle className="w-5 h-5 lg:w-6 lg:h-6 animate-pulse" />
+            ) : (
+                <FaMicrophone className="w-5 h-5 lg:w-6 lg:h-6" />
+            )}
+        </button>
+        <button
+            type="submit"
+            className={`ml-2 px-3 py-3 rounded-lg shadow-md bg-blue-600 hover:bg-blue-700 text-white font-semibold flex-shrink-0
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors duration-200
+                ${(input.trim() === '' || isTyping || isSpeaking) ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+            disabled={input.trim() === '' || isTyping || isSpeaking}
+        >
+            <FaPaperPlane className="w-5 h-5 lg:w-6 lg:h-6" />
+        </button>
+    </div>
+</form>
             </div>
         </div>
     );

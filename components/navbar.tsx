@@ -77,7 +77,7 @@ export default function Navbar(){
             </button>
 
             {clickMenu && (
-  <div className="fixed inset-0 bg-gradient-to-br from-orange-400 to-orange-600 w-screen h-screen overflow-y-auto z-50 p-4">
+  <div className="fixed inset-0 bg-gradient-to-br from-orange-400 to-orange-600 w-screen h-screen overflow-y-auto z-100 p-4">
 
     {/* Bouton de fermeture */}
     <button onClick={menuCliquer} className="ml-auto flex text-white">
