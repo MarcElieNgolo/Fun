@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react"
 
-interface NavbarProps {
-  admin: boolean;
-}
 
-export default function Navbar({admin}:NavbarProps){
+export default function Navbar(){
     const [tailleImage,setTailleImage] = useState<number>(0)
     const [clickMenu,setclickMenu] = useState<boolean>(false)
     const [constructionType,setConstructionType] = useState<boolean>(false)
@@ -70,9 +67,6 @@ export default function Navbar({admin}:NavbarProps){
 
   <li><a href="/ingenieur" className="text-white p-2 bg-gradient-to-r from-orange-400 to-orange-600 font-bold rounded-xl text-sm active:bg-white active:text-orange-500 transition duration-500">Étude d'ingénieur</a></li>
 
-  {admin && (
-    <li><a href="/rang" className="text-white p-2 bg-gradient-to-r from-orange-400 to-orange-600 font-bold rounded-xl text-sm active:bg-white active:text-orange-500 transition duration-500">Rang</a></li>
-  )}
 </ul>
 
 {/* pour mobile , montre etc... */}
@@ -106,13 +100,10 @@ export default function Navbar({admin}:NavbarProps){
         </div>
       )}
 
-      <li><a href="/terrian" className="text-white text-lg font-bold hover:text-yellow-200 transition duration-300">Terrain</a></li>
+      <li><a href="/terrain" className="text-white text-lg font-bold hover:text-yellow-200 transition duration-300">Terrain</a></li>
 
       <li><a href="/ingenieur" className="text-white text-lg font-bold hover:text-yellow-200 transition duration-300">Étude d'ingénieur</a></li>
 
-      {admin && (
-        <li><a href="/rang" className="text-white text-lg font-bold hover:text-yellow-200 transition duration-300">Rang</a></li>
-      )}
     </ul>
   </div>
 )}

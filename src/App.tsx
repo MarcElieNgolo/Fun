@@ -6,6 +6,7 @@ import Classique from "./../pages/Classique"
 import Ecologique from "./../pages/Ecologique"
 import Ingenieur from "./../pages/Ingenieur"
 import Terrain from "./../pages/Terrain"
+
 import { useEffect } from "react"
 
 
@@ -20,7 +21,7 @@ export default function App(){
         <Route path="/ecologique" element={<Ecologique/>}></Route>
         <Route path="/classique" element={<Classique/>}></Route>
         <Route path="/ingenieur" element={<Ingenieur/>}></Route>
-        <Route path="/rang" element={<Rang/>}></Route>
+        <Route path="/admin/Batiproing/espacereserve/admin/postsuppr/0290NDIAIEB1U93833BEN" element={<Rang/>}></Route>
       </Routes>
     </Routeur>
   )
@@ -29,7 +30,7 @@ export default function App(){
 function Redirect(){
   const navigate = useNavigate()
   useEffect(()=>{
-    navigate("/rang")
+    navigate("/acceuil")
   })
   return null
 }

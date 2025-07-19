@@ -19,7 +19,7 @@ export default function FormulairePost() {
     type: "realisation",
     sousType: "",
   });
-
+  const [oui,setoui] = useState<boolean>(false)
   const maxSizeMB = 4; // Maximum image size in MB
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +83,7 @@ export default function FormulairePost() {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
+    setoui(true)
     e.preventDefault();
     if (formData.images.length === 0) {
       alert("Ajoute au moins une image.");
@@ -103,12 +104,26 @@ export default function FormulairePost() {
             type: "realisation",
             sousType: ""
         });
+        setoui(false)
       })
       .catch(err => {
         console.error("Erreur lors de la requête POST:", err);
         alert("Une erreur est survenue lors de la soumission de la requête.");
+        setoui(false)
       });
   };
+
+  const handleReset = () => {
+  setFormData({
+    titre: "",
+    description: "",
+    images: [],
+    prix: "",
+    type: "realisation",
+    sousType: ""
+  });
+};
+
 
   // Updated sousTypes to include 'construction' if needed, otherwise use only 'realisation' and 'vente'
   const sousTypes: Record<string, { value: string; label: string }[]> = {
@@ -235,13 +250,22 @@ export default function FormulairePost() {
       )}
 
       {/* Soumettre */}
-      <div>
+      <div className="space-y-2">
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition"
+          disabled={oui}
         >
           Soumettre
         </button>
+        <button
+  type="button"
+  onClick={handleReset}
+  className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition"
+>
+  Recommencer
+</button>
+
       </div>
     </form>
   );

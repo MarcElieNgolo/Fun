@@ -1,12 +1,20 @@
 import Navbar from "./../components/navbar"
 import ScrollButton from "./../components/scrollbutton"
+import ApiBot from "../components/ApiBot"
+import { useState } from "react"
+
 
 export default function Acceuil(){
 
+    const [Api,setApi] = useState<boolean>(false)
+    const activeBot = ()=>{
+      setApi(!Api)
+    }
     return(
         <div className="Acceuil">
             
-            <Navbar admin={true}></Navbar> 
+            <Navbar></Navbar> 
+            <ApiBot click={Api} cliquer={activeBot}></ApiBot>
             <header className="bg-gradient-to-r from-orange-500 to-orange-700 text-white py-20 text-center h-screen">
         <div className="container mx-auto px-8 mt-8">
           <h1 className="text-2xl md:text-7xl font-extrabold mb-4 leading-tight drop-shadow-lg">BATI-PRO-INGENIERIE</h1>

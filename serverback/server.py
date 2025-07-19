@@ -28,8 +28,6 @@ def get_db_connection():
         return conn
     except psycopg2.Error as e:
         print(f"Erreur CRITIQUE de connexion à la base de données: {e}")
-        # En production, il est crucial de ne pas exposer les détails de l'erreur
-        # et de loguer correctement.
         raise # Rélancer l'exception pour être gérée par les routes.
 
 # Création de la table si elle n'existe pas
@@ -135,15 +133,26 @@ def delete_item(item_id):
         if conn:
             conn.close()
 
-# Fonction utilitaire interne pour récupérer et désérialiser les posts
-# Elle s'assure que le champ 'images' est une liste Python avant de renvoyer.
-def _fetch_posts(query, params=None):
+# Fonction utilitaire interne pour récupérer et désérialiser les posts avec pagination
+def _fetch_posts(query, params=None, limit=None, offset=None):
     conn = None
     cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute(query, params)
+        
+        # Construire la requête avec LIMIT et OFFSET si fournis
+        full_query = query
+        query_params = list(params) if params else []
+
+        if limit is not None:
+            full_query += " LIMIT %s"
+            query_params.append(limit)
+        if offset is not None:
+            full_query += " OFFSET %s"
+            query_params.append(offset)
+
+        cursor.execute(full_query, tuple(query_params))
         posts_raw = cursor.fetchall()
 
         posts_processed = []
@@ -171,24 +180,24 @@ def _fetch_posts(query, params=None):
         if conn:
             conn.close()
 
-# Route GET pour tout récupérer
+# Route GET pour tout récupérer (maintenant avec pagination optionnelle)
 @app.route("/recup", methods=["GET"])
 def get_all_posts():
+    limit = request.args.get('limit', type=int)
+    offset = request.args.get('offset', type=int)
     try:
-        posts = _fetch_posts("SELECT * FROM post ORDER BY id DESC") # Ajout d'un tri pour l'ordre
+        posts = _fetch_posts("SELECT * FROM post ORDER BY id DESC", limit=limit, offset=offset)
         return jsonify(posts)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Routes spécifiques GET pour chaque type/sousType
-# Basé sur votre capture d'écran où 'soustype' contient 'architecture' etc.
-# Si vous voulez filtrer par la colonne 'type', changez 'sousType' par 'type' dans la requête SQL.
-
+# Routes spécifiques GET pour chaque type/sousType (maintenant avec pagination)
 @app.route("/architecture", methods=["GET"])
 def get_architecture_posts():
+    limit = request.args.get('limit', type=int)
+    offset = request.args.get('offset', type=int)
     try:
-        # Filtre sur sousType = 'architecture' selon votre DB
-        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("architecture",))
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("architecture",), limit=limit, offset=offset)
         return jsonify(posts)
     except Exception as e:
         print(f"Erreur lors de la récupération des posts 'architecture': {e}")
@@ -196,9 +205,10 @@ def get_architecture_posts():
 
 @app.route("/ecologique", methods=["GET"])
 def get_ecologique_posts():
+    limit = request.args.get('limit', type=int)
+    offset = request.args.get('offset', type=int)
     try:
-        # Filtre sur sousType = 'ecologique'
-        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("construction_ecologique_btsc",))
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("construction_ecologique_btsc",), limit=limit, offset=offset)
         return jsonify(posts)
     except Exception as e:
         print(f"Erreur lors de la récupération des posts 'ecologique': {e}")
@@ -206,9 +216,10 @@ def get_ecologique_posts():
 
 @app.route("/terrain", methods=["GET"])
 def get_terrain_posts():
+    limit = request.args.get('limit', type=int)
+    offset = request.args.get('offset', type=int)
     try:
-        # Filtre sur sousType = 'terrain'
-        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("terrain",))
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("terrain",), limit=limit, offset=offset)
         return jsonify(posts)
     except Exception as e:
         print(f"Erreur lors de la récupération des posts 'terrain': {e}")
@@ -216,9 +227,10 @@ def get_terrain_posts():
 
 @app.route("/classique", methods=["GET"])
 def get_classique_posts():
+    limit = request.args.get('limit', type=int)
+    offset = request.args.get('offset', type=int)
     try:
-        # Filtre sur sousType = 'classique'
-        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("construction_classique_agglo",))
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("construction_classique_agglo",), limit=limit, offset=offset)
         return jsonify(posts)
     except Exception as e:
         print(f"Erreur lors de la récupération des posts 'classique': {e}")
@@ -226,9 +238,10 @@ def get_classique_posts():
 
 @app.route("/etude", methods=["GET"])
 def get_etude_posts():
+    limit = request.args.get('limit', type=int)
+    offset = request.args.get('offset', type=int)
     try:
-        # Filtre sur sousType = 'etude'
-        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("etude",))
+        posts = _fetch_posts("SELECT * FROM post WHERE sousType = %s ORDER BY id DESC", ("etude",), limit=limit, offset=offset)
         return jsonify(posts)
     except Exception as e:
         print(f"Erreur lors de la récupération des posts 'etude': {e}")

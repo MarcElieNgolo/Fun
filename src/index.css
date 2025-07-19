@@ -1,3 +1,124 @@
 @import "tailwindcss";
 
 
+/* Custom scrollbar for chat window */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Typing indicator dots */
+.typing-indicator-dots {
+    display: inline-block;
+    width: 1.5em; /* Adjust as needed */
+    text-align: left;
+    overflow: hidden;
+    vertical-align: bottom;
+}
+
+.typing-indicator-dots::after {
+    content: '...';
+    animation: typing-dots 1.5s infinite steps(3, end);
+}
+
+@keyframes typing-dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
+
+/* Speaking wave indicator */
+.speaking-wave {
+    display: flex;
+    align-items: flex-end;
+    height: 1.2em; /* Adjust height of the wave container */
+    width: 2em; /* Adjust width of the wave container */
+    overflow: hidden;
+}
+
+.speaking-wave::before,
+.speaking-wave::after,
+.speaking-wave span {
+    content: '';
+    display: inline-block;
+    width: 4px; /* Width of each bar */
+    height: 4px; /* Initial height */
+    background-color: #333; /* Color of the bars */
+    margin: 0 1px; /* Spacing between bars */
+    border-radius: 2px;
+    animation: wave-animation 1.2s infinite ease-in-out;
+}
+
+.speaking-wave::before {
+    animation-delay: -0.2s;
+}
+
+.speaking-wave::after {
+    animation-delay: -0.4s;
+}
+
+/* Add more spans if you want more bars, e.g., <span></span><span></span> */
+.speaking-wave span:nth-child(1) { animation-delay: -0.6s; }
+.speaking-wave span:nth-child(2) { animation-delay: -0.8s; }
+
+
+@keyframes wave-animation {
+    0%, 100% {
+        height: 4px;
+        transform: translateY(0);
+    }
+    25% {
+        height: 10px;
+        transform: translateY(-6px);
+    }
+    50% {
+        height: 16px;
+        transform: translateY(-12px);
+    }
+    75% {
+        height: 10px;
+        transform: translateY(-6px);
+    }
+}
+
+/* Animated gradient background */
+.animated-gradient-bg {
+    background: linear-gradient(270deg, #e0f2f7, #bbdefb, #e0f2f7);
+    background-size: 600% 600%;
+    animation: gradient-animation 15s ease infinite;
+}
+
+@keyframes gradient-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Fade-in-up animation for messages */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out forwards;
+}   

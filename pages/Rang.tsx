@@ -8,6 +8,8 @@ import Back from "../components/backBouton";
 import FormulairePost from "../components/poster";
 import Suppression from "../components/supprimer";
 
+
+
 // Définition des différentes étapes de l'interface d'administration
 type AdminStep =
   | "choixPersonnel" // L'utilisateur choisit entre client et admin
@@ -95,7 +97,7 @@ export default function Rang() {
   return (
     <div className="admin">
       {/* La Navbar n'apparaît que si l'admin est connecté */}
-      {isAdminConnected && <Navbar admin={true}></Navbar>}
+      {isAdminConnected && <Navbar ></Navbar>}
 
       {/* Rendu conditionnel basé sur l'état `currentStep` */}
       {currentStep === "choixPersonnel" && (
