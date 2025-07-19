@@ -129,342 +129,487 @@ export function respondToQuery(query:string) {
     return "Hmm, BATI-BOT n'a pas de réponse pour ça. 😕 Je suis un assistant spécialisé dans BATI-PRO-INGENIERIE, et je ne peux répondre qu'aux questions liées à l'entreprise et à ses services. Pourriez-vous reformuler votre question ou me poser une question plus spécifique sur nos services de construction, d'ingénierie, ou sur l'entreprise elle-même ? Je suis là pour ça, et j'apprends vite, surtout avec des questions claires ! 😉";
 }
 
+
 const rules = [
     // Basic greetings and conversational elements
     {
-        patterns: [/bonjour/i, /salut/i, /hello/i, /coucou/i , /hey/i, /bonsoir/i, /bonne nuit/i, /comment ça va/i, /comment allez-vous/i],
+        patterns: [/bonjour/i, /salut/i, /hello/i, /coucou/i , /hey/i, /bonsoir/i, /bonne nuit/i, /comment ça va/i, /comment allez-vous/i, /ça va bien/i, /tout va bien/i, /bien et toi/i, /salutations/i, /yo/i, /hi/i],
         responses: [`${batiProInfo.general.greeting}`, "Salut ! Je suis BATI-BOT. Que puis-je faire pour vous concernant BATI-PRO-INGENIERIE ? 😊", "Bonjour ! Ravi de vous aider. Comment BATI-PRO-INGENIERIE peut-il vous être utile aujourd'hui ?"]
     },
     {
-        patterns: [/ça va/i, /comment vas-tu/i, /comment allez-vous/i, /tout va bien/i, /bien et toi/i],
+        patterns: [/ça va/i, /comment vas-tu/i, /comment allez-vous/i, /tout va bien/i, /bien et toi/i, /comment te portes-tu/i, /tu vas bien/i],
         responses: ["Je vais très bien, merci ! Je suis BATI-BOT et je suis là pour répondre à vos questions sur BATI-PRO-INGENIERIE. 🤖", "Super ! Et vous ? Dites-moi ce que BATI-BOT peut faire pour vous. 👍", "Je suis un programme, donc je n'ai pas de sentiments, mais je suis prêt à vous assister ! Que voulez-vous savoir ?"]
     },
     {
-        patterns: [/qui es-tu/i, /c'est quoi ton nom/i, /tu es quoi/i, /comment t'appelles-tu/i, /présente-toi/i],
+        patterns: [/qui es-tu/i, /c'est quoi ton nom/i, /tu es quoi/i, /comment t'appelles-tu/i, /présente-toi/i, /ton identité/i, /qui êtes-vous/i, /nom de l'assistant/i],
         responses: [`Je suis ${batiProInfo.general.name} ! Mon rôle est de vous fournir des informations précises sur leurs services et engagements. 💡`, `Moi, c'est ${batiProInfo.general.name} ! Votre assistant virtuel. 💬`, "Je suis l'assistant virtuel de BATI-PRO-INGENIERIE, conçu pour répondre à toutes vos questions sur l'entreprise et ses services. Enchanté !"]
     },
     {
-        patterns: [/merci/i, /merci beaucoup/i, /c'est gentil/i, /ok merci/i, /super merci/i, /génial merci/i, /je te remercie/i, /merci bien/i],
+        patterns: [/merci/i, /merci beaucoup/i, /c'est gentil/i, /ok merci/i, /super merci/i, /génial merci/i, /je te remercie/i, /merci bien/i, /grand merci/i, /merci infiniment/i, /reconnaissant/i],
         responses: ["De rien ! N'hésitez pas si vous avez d'autres questions. 😊", "Avec plaisir ! Je suis là pour ça.", "Pas de problème ! Heureux d'avoir pu vous aider. C'est un plaisir de vous servir ! 😉", "Mon plaisir ! Je suis toujours là pour vous. ✨"]
     },
     {
-        patterns: [/au revoir/i, /bye/i, /à bientôt/i, /bonne journée/i, /bonne soirée/i, /à la prochaine/i, /salut/i, /adieu/i],
+        patterns: [/au revoir/i, /bye/i, /à bientôt/i, /bonne journée/i, /bonne soirée/i, /à la prochaine/i, /salut/i, /adieu/i, /ciao/i, /à plus/i, /bonne nuit/i],
         responses: ["Au revoir ! N'hésitez pas à revenir si vous avez d'autres questions. 👋", "À bientôt ! Passez une excellente journée. Que vos projets soient couronnés de succès ! 🚀", "Merci de votre visite ! BATI-BOT reste à votre disposition. À la prochaine !"]
     },
 
     // About BATI-PRO-INGENIERIE
     {
-        patterns: [/présentation de bati-pro/i, /c'est quoi bati-pro/i, /qui est bati-pro-ingenierie/i, /parlez-moi de bati-pro/i, /qui sommes-nous/i, /votre entreprise/i, /informations sur bati-pro/i, /bati-pro en quelques mots/i, /tout sur bati-pro/i, /décris bati-pro/i],
-        responses: [batiProInfo.about.whoAreWe, batiProInfo.general.introduction]
+        patterns: [/présentation de (bati|bâti)/i, /c'est quoi (bati|bâti)/i, /qui est (bati|bâti)-pro-ingenierie/i, /parlez-moi de (bati|bâti)/i, /qui sommes-nous/i, /votre entreprise/i, /informations sur (bati|bâti)/i, /(bati|bâti) en quelques mots/i, /tout sur (bati|bâti)/i, /décris (bati|bâti)/i,
+                   /présentation de (bati|bâti)/i, /c'est quoi (bati|bâti)/i, /qui est (bati|bâti)-pro-ingenierie/i, /parlez-moi de (bati|bâti)/i, /informations sur (bati|bâti)/i, /(bati|bâti) en quelques mots/i, /tout sur (bati|bâti)/i, /décris (bati|bâti)/i,
+                   /qui êtes-vous/i, /votre société/i, /votre compagnie/i, /donnez-moi des infos sur vous/i, /qu'est-ce que (bati|bâti)-pro-ingenierie/i],
+        responses: [batiProInfo.about.whoAreWe, batiProInfo.general.introduction]   
     },
     {
-        patterns: [/spécialisé dans quoi/i, /domaine d'intervention/i, /votre spécialisation/i, /que faites-vous/i, /vos compétences/i, /quels sont vos domaines d'expertise/i],
+        patterns: [/spécialisé dans quoi/i, /domaine d'intervention/i, /votre spécialisation/i, /que faites-vous/i, /vos compétences/i, /quels sont vos domaines d'expertise/i,
+                   /spécialisé dans quoi (bati|bâti)/i, /domaine d'intervention (bati|bâti)/i, /votre spécialisation (bati|bâti)/i, /que faites-vous (bati|bâti)/i, /vos compétences (bati|bâti)/i, /quels sont vos domaines d'expertise (bati|bâti)/i,
+                   /vos activités/i, /vos services principaux/i, /ce que vous construisez/i, /vos expertises/i],
         responses: [batiProInfo.about.specialization]
     },
     {
-        patterns: [/où est situé bati-pro/i, /adresse de bati-pro/i, /emplacement/i, /localisation/i, /vous êtes où/i, /siège social/i, /votre adresse/i],
-        responses: [`Le siège social de BATI-PRO-INGENIERIE est à ${batiProInfo.general.location}`]
+        patterns: [/où est situé (bati|bâti)/i, /adresse de (bati|bâti)/i, /emplacement/i, /localisation/i, /vous êtes où/i, /siège social/i, /votre adresse/i,
+                   /où est situé (bati|bâti)/i, /adresse de (bati|bâti)/i, /emplacement (bati|bâti)/i, /localisation (bati|bâti)/i, /vous êtes où (bati|bâti)/i, /siège social (bati|bâti)/i, /votre adresse (bati|bâti)/i,
+                   /où vous trouver/i, /vos bureaux/i, /votre position géographique/i, /où se situe/i, /où se trouve/i],
+        responses: [`Le siège social de (bati|bâti)-pro-INGENIERIE est à ${batiProInfo.general.location}`]
     },
     {
-        patterns: [/vos équipements et votre équipe/i, /équipe bati-pro/i, /matériel bati-pro/i, /vos ressources humaines/i, /vos collaborateurs/i, /votre staff/i],
+        patterns: [/vos équipements et votre équipe/i, /équipe (bati|bâti)/i, /matériel (bati|bâti)/i, /vos ressources humaines/i, /vos collaborateurs/i, /votre staff/i,
+                   /vos équipements et votre équipe (bati|bâti)/i, /équipe (bati|bâti)/i, /matériel (bati|bâti)/i, /vos ressources humaines (bati|bâti)/i, /vos collaborateurs (bati|bâti)/i, /votre staff (bati|bâti)/i,
+                   /vos employés/i, /votre personnel/i, /vos machines/i, /vos outils/i, /qui travaille chez vous/i],
         responses: [batiProInfo.about.equipmentTeam, batiProInfo.about.teamExpertise]
     },
     {
-        patterns: [/suivi client chez bati-pro/i, /satisfaction client bati-pro/i, /relation client/i, /accompagnement client/i, /comment gérez-vous les clients/i],
+        patterns: [/suivi client chez (bati|bâti)/i, /satisfaction client (bati|bâti)/i, /relation client/i, /accompagnement client/i, /comment gérez-vous les clients/i,
+                   /suivi client chez (bati|bâti)/i, /satisfaction client (bati|bâti)/i, /relation client (bati|bâti)/i, /accompagnement client (bati|bâti)/i, /comment gérez-vous les clients (bati|bâti)/i,
+                   /support client/i, /service client/i, /votre approche client/i, /comment vous occupez-vous des clients/i],
         responses: [batiProInfo.about.clientFocus]
     },
     {
-        patterns: [/votre engagement/i, /bati-pro s'engage à quoi/i, /engagement de bati-pro/i, /vos valeurs/i, /vos principes/i, /vos promesses/i],
+        patterns: [/votre engagement/i, /(bati|bâti) s'engage à quoi/i, /engagement de (bati|bâti)/i, /vos valeurs/i, /vos principes/i, /vos promesses/i,
+                   /votre engagement (bati|bâti)/i, /(bati|bâti) s'engage à quoi/i, /engagement de (bati|bâti)/i, /vos valeurs (bati|bâti)/i, /vos principes (bati|bâti)/i, /vos promesses (bati|bâti)/i,
+                   /votre éthique/i, /votre mission sociale/i, /votre responsabilité/i],
         responses: [batiProInfo.general.engagement, batiProInfo.valuesAdvantages.main]
     },
     {
-        patterns: [/histoire de bati-pro/i, /fondation de l'entreprise/i, /quand avez-vous été créé/i, /vos débuts/i],
+        patterns: [/histoire de (bati|bâti)/i, /fondation de l'entreprise/i, /quand avez-vous été créé/i, /vos débuts/i,
+                   /histoire de (bati|bâti)/i, /fondation de l'entreprise (bati|bâti)/i, /quand avez-vous été créé (bati|bâti)/i, /vos débuts (bati|bâti)/i,
+                   /votre parcours/i, /votre origine/i, /comment ça a commencé/i, /création de l'entreprise/i],
         responses: [batiProInfo.about.history]
     },
     {
-        patterns: [/votre approche/i, /comment travaillez-vous/i, /méthodologie bati-pro/i, /votre processus de travail/i],
+        patterns: [/votre approche/i, /comment travaillez-vous/i, /méthodologie (bati|bâti)/i, /votre processus de travail/i,
+                   /votre approche (bati|bâti)/i, /comment travaillez-vous (bati|bâti)/i, /méthodologie (bati|bâti)/i, /votre processus de travail (bati|bâti)/i,
+                   /votre façon de faire/i, /vos méthodes/i, /comment vous y prenez-vous/i],
         responses: [batiProInfo.about.approach]
     },
     {
-        patterns: [/slogan bati-pro/i, /votre devise/i, /votre phrase d'accroche/i],
+        patterns: [/slogan (bati|bâti)/i, /votre devise/i, /votre phrase d'accroche/i,
+                   /slogan (bati|bâti)/i, /votre devise (bati|bâti)/i, /votre phrase d'accroche (bati|bâti)/i,
+                   /votre leitmotiv/i, /votre signature/i],
         responses: [batiProInfo.general.slogan]
     },
     {
-        patterns: [/votre philosophie/i, /philosophie de l'entreprise/i],
+        patterns: [/votre philosophie/i, /philosophie de l'entreprise/i,
+                   /votre philosophie (bati|bâti)/i, /philosophie de l'entreprise (bati|bâti)/i,
+                   /vos principes fondamentaux/i, /votre vision des valeurs/i],
         responses: [batiProInfo.general.philosophy]
     },
     {
-        patterns: [/ce qui vous rend unique/i, /votre proposition de valeur/i, /pourquoi choisir bati-pro/i, /vos points forts/i],
+        patterns: [/ce qui vous rend unique/i, /votre proposition de valeur/i, /pourquoi choisir (bati|bâti)/i, /vos points forts/i,
+                   /ce qui vous rend unique (bati|bâti)/i, /votre proposition de valeur (bati|bâti)/i, /pourquoi choisir (bati|bâti)/i, /vos points forts (bati|bâti)/i,
+                   /vos avantages concurrentiels/i, /votre différenciation/i, /ce qui fait votre force/i],
         responses: [batiProInfo.general.uniqueSellingProposition]
     },
     {
-        patterns: [/culture d'entreprise/i, /ambiance de travail/i, /votre environnement de travail/i],
+        patterns: [/culture d'entreprise/i, /ambiance de travail/i, /votre environnement de travail/i,
+                   /culture d'entreprise (bati|bâti)/i, /ambiance de travail (bati|bâti)/i, /votre environnement de travail (bati|bâti)/i,
+                   /vos valeurs internes/i, /comment est l'atmosphère chez vous/i],
         responses: [batiProInfo.about.companyCulture]
     },
     {
-        patterns: [/impact de bati-pro/i, /développement socio-économique/i, /votre contribution/i],
+        patterns: [/impact de (bati|bâti)/i, /développement socio-économique/i, /votre contribution/i,
+                   /impact de (bati|bâti)/i, /développement socio-économique (bati|bâti)/i, /votre contribution (bati|bâti)/i,
+                   /votre rôle dans la société/i, /votre engagement social/i, /vos actions pour la communauté/i],
         responses: [batiProInfo.about.impact]
     },
 
+    // Services - Main
+    {
+        patterns: [/nos services/i, /quels services proposez-vous/i, /liste des services/i, /vos prestations/i, /que faites-vous comme service/i, /services de (bati|bâti)/i, /domaine d'activité/i, /types de services/i, /détaillez vos services/i, /tous vos services/i, /quels services proposes tu/i, /parle-moi de tes services/i, /quelles sont vos offres/i, /service/i,/services/i, /offre/i, /offres/i,/propose/i, /proposes/i,
+                   /nos services (bati|bâti)/i, /quels services proposez-vous (bati|bâti)/i, /liste des services (bati|bâti)/i, /vos prestations (bati|bâti)/i, /que faites-vous comme service (bati|bâti)/i, /services de (bati|bâti)/i, /domaine d'activité (bati|bâti)/i, /types de services (bati|bâti)/i, /détaillez vos services (bati|bâti)/i, /tous vos services (bati|bâti)/i, /quels services proposes tu (bati|bâti)/i, /parle-moi de tes services (bati|bâti)/i, /quelles sont vos offres (bati|bâti)/i, /service (bati|bâti)/i, /offre (bati|bâti)/i, /offres (bati|bâti)/i,/propose (bati|bâti)/i, /proposes (bati|bâti)/i,
+                   /vos domaines d'intervention/i, /vos spécialités/i, /vos gammes de services/i, /tout ce que vous faites/i],
+        responses: [batiProInfo.services.main]
+    },
     // Services - Architecture
     {
-        patterns: [/services d'architecture/i, /que proposez-vous en architecture/i, /architecture bati-pro/i, /architecture/i, /conception de plans/i, /design architectural/i, /architecte/i, /plans de maison/i, /design de bâtiments/i],
+        patterns: [/services d'architecture/i, /que proposez-vous en architecture/i, /architecture (bati|bâti)/i, /architecture/i, /conception de plans/i, /design architectural/i, /architecte/i, /plans de maison/i, /design de bâtiments/i,
+                   /services d'architecture (bati|bâti)/i, /que proposez-vous en architecture (bati|bâti)/i, /architecture (bati|bâti)/i, /architecture bâti/i, /conception de plans bâti/i, /design architectural bâti/i, /architecte bâti/i, /plans de maison bâti/i, /design de bâtiments bâti/i,
+                   /vos prestations en architecture/i, /vos compétences en architecture/i, /création architecturale/i, /dessin de bâtiments/i, /architecte d'intérieur/i, /extérieur/i],
         responses: [batiProInfo.services.architecture.main]
     },
     {
-        patterns: [/philosophie de design architectural/i, /design bioclimatique/i, /style architectural/i],
+        patterns: [/philosophie de design architectural/i, /design bioclimatique/i, /style architectural/i,
+                   /philosophie de design architectural (bati|bâti)/i, /design bioclimatique (bati|bâti)/i, /style architectural (bati|bâti)/i,
+                   /votre approche du design/i, /comment concevez-vous les bâtiments/i, /design durable/i, /esthétique/i, /fonctionnalité/i],
         responses: [batiProInfo.services.architecture.designPhilosophy]
     },
     {
-        patterns: [/types de projets architecture/i, /villas de luxe/i, /bâtiments administratifs/i, /résidences collectives/i],
+        patterns: [/types de projets architecture/i, /villas de luxe/i, /bâtiments administratifs/i, /résidences collectives/i,
+                   /types de projets architecture (bati|bâti)/i, /villas de luxe (bati|bâti)/i, /bâtiments administratifs (bati|bâti)/i, /résidences collectives (bati|bâti)/i,
+                   /quelles constructions faites-vous en architecture/i, /projets résidentiels/i, /projets commerciaux/i, /aménagements paysagers/i],
         responses: [batiProInfo.services.architecture.projectTypes]
     },
     {
-        patterns: [/études préliminaires architecture/i, /faisabilité architecture/i, /analyse terrain architecture/i, /étude de faisabilité/i],
+        patterns: [/études préliminaires architecture/i, /faisabilité architecture/i, /analyse terrain architecture/i, /étude de faisabilité/i,
+                   /études préliminaires architecture (bati|bâti)/i, /faisabilité architecture (bati|bâti)/i, /analyse terrain architecture (bati|bâti)/i, /étude de faisabilité (bati|bâti)/i,
+                   /analyse du site/i, /études de terrain/i, /étude de sol pour architecture/i, /besoins client architecture/i],
         responses: [batiProInfo.services.architecture.preliminaryStudies]
     },
     {
-        patterns: [/conception architecturale/i, /modélisation 3d architecture/i, /plans 3d/i, /esquisses/i, /avant-projets/i, /visites virtuelles/i],
+        patterns: [/conception architecturale/i, /modélisation 3d architecture/i, /plans 3d/i, /esquisses/i, /avant-projets/i, /visites virtuelles/i,
+                   /conception architecturale (bati|bâti)/i, /modélisation 3d architecture (bati|bâti)/i, /plans 3d bâti/i, /esquisses bâti/i, /avant-projets bâti/i, /visites virtuelles bâti/i,
+                   /maquette numérique/i, /plans détaillés/i, /visualisation projet/i, /dessins architecturaux/i],
         responses: [batiProInfo.services.architecture.architecturalDesign]
     },
     {
-        patterns: [/permis de construire/i, /dossiers permis construction/i, /obtention permis/i, /réglementation urbanisme/i, /démarches administratives/i],
+        patterns: [/permis de construire/i, /dossiers permis construction/i, /obtention permis/i, /réglementation urbanisme/i, /démarches administratives/i,
+                   /permis de construire (bati|bâti)/i, /dossiers permis construction (bati|bâti)/i, /obtention permis (bati|bâti)/i, /réglementation urbanisme (bati|bâti)/i, /démarches administratives (bati|bâti)/i,
+                   /autorisation de construire/i, /paperasse construction/i, /code de l'urbanisme/i, /dépot de dossier/i],
         responses: [batiProInfo.services.architecture.buildingPermit]
     },
     {
-        patterns: [/suivi de chantier architecture/i, /direction des travaux architecture/i, /gestion chantier architecture/i, /coordination maçons/i, /contrôle qualité architecture/i],
+        patterns: [/suivi de chantier architecture/i, /direction des travaux architecture/i, /gestion chantier architecture/i, /coordination maçons/i, /contrôle qualité architecture/i,
+                   /suivi de chantier architecture (bati|bâti)/i, /direction des travaux architecture (bati|bâti)/i, /gestion chantier architecture (bati|bâti)/i, /coordination maçons (bati|bâti)/i, /contrôle qualité architecture (bati|bâti)/i,
+                   /supervision de chantier/i, /coordination des corps de métier/i, /contrôle des coûts/i, /respect des délais/i, /réception des travaux/i],
         responses: [batiProInfo.services.architecture.siteSupervision]
     },
     // Services - Engineering
     {
-        patterns: [/études d'ingénierie/i, /service ingénierie/i, /ingénierie bati-pro/i, /ingénieur/i, /calculs techniques/i, /expertise technique/i, /solidité des ouvrages/i, /optimisation coûts/i],
+        patterns: [/études d'ingénierie/i, /service ingénierie/i, /ingénierie (bati|bâti)/i, /ingénieur/i, /calculs techniques/i, /expertise technique/i, /solidité des ouvrages/i, /optimisation coûts/i,
+                   /études d'ingénierie (bati|bâti)/i, /service ingénierie (bati|bâti)/i, /ingénierie (bati|bâti)/i, /ingénieur (bati|bâti)/i, /calculs techniques (bati|bâti)/i, /expertise technique (bati|bâti)/i, /solidité des ouvrages (bati|bâti)/i, /optimisation coûts (bati|bâti)/i,
+                   /bureau d'études/i, /conception technique/i, /ingénierie du bâtiment/i, /ingénierie civile/i, /sécurité structurelle/i],
         responses: [batiProInfo.services.engineering.main]
     },
     {
-        patterns: [/types de structures ingénierie/i, /béton armé/i, /acier/i, /bois/i, /structures mixtes/i],
+        patterns: [/types de structures ingénierie/i, /béton armé/i, /acier/i, /bois/i, /structures mixtes/i,
+                   /types de structures ingénierie (bati|bâti)/i, /béton armé (bati|bâti)/i, /acier (bati|bâti)/i, /bois (bati|bâti)/i, /structures mixtes (bati|bâti)/i,
+                   /quelle structure utilisez-vous/i, /matériaux de structure/i, /conception de charpente/i],
         responses: [batiProInfo.services.engineering.structuralTypes]
     },
     {
-        patterns: [/logiciels ingénierie/i, /outils de calcul/i, /logiciels de modélisation/i],
+        patterns: [/logiciels ingénierie/i, /outils de calcul/i, /logiciels de modélisation/i,
+                   /logiciels ingénierie (bati|bâti)/i, /outils de calcul (bati|bâti)/i, /logiciels de modélisation (bati|bâti)/i,
+                   /logiciels de simulation/i, /technologie ingénierie/i, /outils de pointe/i],
         responses: [batiProInfo.services.engineering.softwareTools]
     },
     {
-        patterns: [/protocoles de sécurité ingénierie/i, /sécurité chantier/i, /normes de sécurité/i],
+        patterns: [/protocoles de sécurité ingénierie/i, /sécurité chantier/i, /normes de sécurité/i,
+                   /protocoles de sécurité ingénierie (bati|bâti)/i, /sécurité chantier (bati|bâti)/i, /normes de sécurité (bati|bâti)/i,
+                   /règles de sécurité/i, /prévention des risques/i, /sécurité au travail/i],
         responses: [batiProInfo.services.engineering.safetyProtocols]
     },
     {
-        patterns: [/études techniques ingénierie/i, /dimensionnement structures/i, /géotechnique/i, /calcul de charges/i, /résistance matériaux/i, /stabilité/i, /étude de sol/i],
+        patterns: [/études techniques ingénierie/i, /dimensionnement structures/i, /géotechnique/i, /calcul de charges/i, /résistance matériaux/i, /stabilité/i, /étude de sol/i,
+                   /études techniques ingénierie (bati|bâti)/i, /dimensionnement structures (bati|bâti)/i, /géotechnique (bati|bâti)/i, /calcul de charges (bati|bâti)/i, /résistance matériaux (bati|bâti)/i, /stabilité (bati|bâti)/i, /étude de sol (bati|bâti)/i,
+                   /études de fondations/i, /calcul de structure/i, /analyse des contraintes/i, /études sismiques/i],
         responses: [batiProInfo.services.engineering.technicalStudies]
     },
     {
-        patterns: [/conception projets ingénierie/i, /plans d'exécution/i, /choix des matériaux/i, /procédés construction/i, /planification projet/i],
+        patterns: [/conception projets ingénierie/i, /plans d'exécution/i, /choix des matériaux/i, /procédés construction/i, /planification projet/i,
+                   /conception projets ingénierie (bati|bâti)/i, /plans d'exécution (bati|bâti)/i, /choix des matériaux (bati|bâti)/i, /procédés construction (bati|bâti)/i, /planification projet (bati|bâti)/i,
+                   /ingénierie de conception/i, /plans techniques/i, /méthodes de construction/i, /optimisation des ressources/i],
         responses: [batiProInfo.services.engineering.projectDesign]
     },
     {
-        patterns: [/suivi travaux ingénierie/i, /coordination corps de métier/i, /avancement travaux ingénierie/i, /gestion imprévus/i, /suivi de chantier ingénierie/i],
+        patterns: [/suivi travaux ingénierie/i, /coordination corps de métier/i, /avancement travaux ingénierie/i, /gestion imprévus/i, /suivi de chantier ingénierie/i,
+                   /suivi travaux ingénierie (bati|bâti)/i, /coordination corps de métier (bati|bâti)/i, /avancement travaux ingénierie (bati|bâti)/i, /gestion imprévus (bati|bâti)/i, /suivi de chantier ingénierie (bati|bâti)/i,
+                   /gestion de projet/i, /contrôle des travaux/i, /rapports de chantier/i, /planning des travaux/i],
         responses: [batiProInfo.services.engineering.workMonitoring]
     },
     {
-        patterns: [/assistance maîtrise d'ouvrage/i, /conseil technique client ingénierie/i, /analyse appels d'offres/i, /réception ouvrages/i, /accompagnement maîtrise d'ouvrage/i],
+        patterns: [/assistance maîtrise d'ouvrage/i, /conseil technique client ingénierie/i, /analyse appels d'offres/i, /réception ouvrages/i, /accompagnement maîtrise d'ouvrage/i,
+                   /assistance maîtrise d'ouvrage (bati|bâti)/i, /conseil technique client ingénierie (bati|bâti)/i, /analyse appels d'offres (bati|bâti)/i, /réception ouvrages (bati|bâti)/i, /accompagnement maîtrise d'ouvrage (bati|bâti)/i,
+                   /AMO/i, /aide au maître d'ouvrage/i, /gestion des contrats/i, /expertise indépendante/i],
         responses: [batiProInfo.services.engineering.ownerAssistance]
     },
     // Services - Classic Construction
     {
-        patterns: [/construction classique/i, /types de construction classique/i, /bâtiments classiques/i, /classique/i, /construire une maison/i, /construction traditionnelle/i, /bâtiment traditionnel/i],
+        patterns: [/construction classique/i, /types de construction classique/i, /bâtiments classiques/i, /classique/i, /construire une maison/i, /construction traditionnelle/i, /bâtiment traditionnel/i,
+                   /construction classique (bati|bâti)/i, /types de construction classique (bati|bâti)/i, /bâtiments classiques (bati|bâti)/i, /classique (bati|bâti)/i, /construire une maison (bati|bâti)/i, /construction traditionnelle (bati|bâti)/i, /bâtiment traditionnel (bati|bâti)/i,
+                   /construction conventionnelle/i, /méthodes classiques de construction/i, /réalisation de bâtiments/i],
         responses: [batiProInfo.services.classicConstruction.main]
     },
     {
-        patterns: [/phases projet construction classique/i, /étapes construction classique/i],
+        patterns: [/phases projet construction classique/i, /étapes construction classique/i,
+                   /phases projet construction classique (bati|bâti)/i, /étapes construction classique (bati|bâti)/i,
+                   /processus de construction/i, /déroulement d'un chantier/i, /cycle de vie du projet/i],
         responses: [batiProInfo.services.classicConstruction.projectPhases]
     },
     {
-        patterns: [/contrôle qualité construction classique/i, /qualité construction/i, /inspection chantier/i],
+        patterns: [/contrôle qualité construction classique/i, /qualité construction/i, /inspection chantier/i,
+                   /contrôle qualité construction classique (bati|bâti)/i, /qualité construction (bati|bâti)/i, /inspection chantier (bati|bâti)/i,
+                   /garantie de qualité/i, /normes de construction/i, /certification qualité/i],
         responses: [batiProInfo.services.classicConstruction.qualityControl]
     },
     {
-        patterns: [/matériaux utilisés construction classique/i, /matériaux traditionnels/i, /béton acier/i],
+        patterns: [/matériaux utilisés construction classique/i, /matériaux traditionnels/i, /béton acier/i,
+                   /matériaux utilisés construction classique (bati|bâti)/i, /matériaux traditionnels (bati|bâti)/i, /béton acier (bati|bâti)/i,
+                   /types de matériaux/i, /choix des matériaux/i, /fournisseurs de matériaux/i],
         responses: [batiProInfo.services.classicConstruction.materialsUsed]
     },
     {
-        patterns: [/construction résidentielle classique/i, /villas classiques/i, /immeubles habitation classiques/i, /logements/i, /résidences/i, /lotissements/i, /maisons individuelles/i],
+        patterns: [/construction résidentielle classique/i, /villas classiques/i, /immeubles habitation classiques/i, /logements/i, /résidences/i, /lotissements/i, /maisons individuelles/i,
+                   /construction résidentielle classique (bati|bâti)/i, /villas classiques (bati|bâti)/i, /immeubles habitation classiques (bati|bâti)/i, /logements (bati|bâti)/i, /résidences (bati|bâti)/i, /lotissements (bati|bâti)/i, /maisons individuelles (bati|bâti)/i,
+                   /construction de logements/i, /projets immobiliers/i, /habitat/i, /maisons à vendre/i],
         responses: [batiProInfo.services.classicConstruction.residential]
     },
     {
-        patterns: [/construction professionnelle classique/i, /bureaux classiques/i, /magasins classiques/i, /hôtels classiques/i, /bâtiments commerciaux/i, /entrepôts/i, /sièges d'entreprises/i],
+        patterns: [/construction professionnelle classique/i, /bureaux classiques/i, /magasins classiques/i, /hôtels classiques/i, /bâtiments commerciaux/i, /entrepôts/i, /sièges d'entreprises/i,
+                   /construction professionnelle classique (bati|bâti)/i, /bureaux classiques (bati|bâti)/i, /magasins classiques (bati|bâti)/i, /hôtels classiques (bati|bâti)/i, /bâtiments commerciaux (bati|bâti)/i, /entrepôts (bati|bâti)/i, /sièges d'entreprises (bati|bâti)/i,
+                   /construction d'entreprises/i, /locaux professionnels/i, /espaces de travail/i, /centres commerciaux/i],
         responses: [batiProInfo.services.classicConstruction.professional]
     },
     {
-        patterns: [/infrastructures publiques classiques/i, /écoles classiques/i, /hôpitaux classiques/i, /centres de santé/i, /équipements sportifs/i, /culturels/i, /infrastructures sociales/i],
+        patterns: [/infrastructures publiques classiques/i, /écoles classiques/i, /hôpitaux classiques/i, /centres de santé/i, /équipements sportifs/i, /culturels/i, /infrastructures sociales/i,
+                   /infrastructures publiques classiques (bati|bâti)/i, /écoles classiques (bati|bâti)/i, /hôpitaux classiques (bati|bâti)/i, /centres de santé (bati|bâti)/i, /équipements sportifs (bati|bâti)/i, /culturels (bati|bâti)/i, /infrastructures sociales (bati|bâti)/i,
+                   /construction publique/i, /bâtiments publics/i, /projets gouvernementaux/i, /développement urbain/i],
         responses: [batiProInfo.services.classicConstruction.publicInfrastructure]
     },
     {
-        patterns: [/gros œuvre/i, /terrassement/i, /fondations/i, /maçonnerie/i, /dalles et planchers/i, /charpentes béton/i, /étanchéité/i, /drainage/i],
+        patterns: [/gros œuvre/i, /terrassement/i, /fondations/i, /maçonnerie/i, /dalles et planchers/i, /charpentes béton/i, /étanchéité/i, /drainage/i,
+                   /gros œuvre (bati|bâti)/i, /terrassement (bati|bâti)/i, /fondations (bati|bâti)/i, /maçonnerie (bati|bâti)/i, /dalles et planchers (bati|bâti)/i, /charpentes béton (bati|bâti)/i, /étanchéité (bati|bâti)/i, /drainage (bati|bâti)/i,
+                   /travaux de structure/i, /fondations profondes/i, /murs porteurs/i, /dallage/i, /charpente/i],
         responses: [batiProInfo.services.classicConstruction.grossWork]
     },
     {
-        patterns: [/second œuvre/i, /plomberie/i, /électricité/i, /finitions/i, /carrelage/i, /peinture/i, /revêtements/i, /menuiserie/i],
+        patterns: [/second œuvre/i, /plomberie/i, /électricité/i, /finitions/i, /carrelage/i, /peinture/i, /revêtements/i, /menuiserie/i,
+                   /second œuvre (bati|bâti)/i, /plomberie (bati|bâti)/i, /électricité (bati|bâti)/i, /finitions (bati|bâti)/i, /carrelage (bati|bâti)/i, /peinture (bati|bâti)/i, /revêtements (bati|bâti)/i, /menuiserie (bati|bâti)/i,
+                   /travaux de finition/i, /installations électriques/i, /installations sanitaires/i, /revêtement de sol/i, /revêtement mural/i],
         responses: [batiProInfo.services.classicConstruction.secondWork]
     },
     {
-        patterns: [/gestion de chantier classique/i, /suivi chantier classique/i, /coordination chantier/i, /contrôle qualité chantier/i],
+        patterns: [/gestion de chantier classique/i, /suivi chantier classique/i, /coordination chantier/i, /contrôle qualité chantier/i,
+                   /gestion de chantier classique (bati|bâti)/i, /suivi chantier classique (bati|bâti)/i, /coordination chantier (bati|bâti)/i, /contrôle qualité chantier (bati|bâti)/i,
+                   /management de projet/i, /supervision des travaux/i, /respect des délais/i, /gestion des équipes/i],
         responses: [batiProInfo.services.classicConstruction.siteManagement]
     },
     // Services - Ecological Construction (BTCS)
     {
-        patterns: [/construction écologique/i, /système btcs/i, /blocs de terre comprimée/i, /btcs/i, /construction durable/i, /écologique/i, /maisons écologiques/i, /construction verte/i, /terre stabilisée/i, /bâtiment écologique/i],
+        patterns: [/construction écologique/i, /système btcs/i, /blocs de terre comprimée/i, /btcs/i, /construction durable/i, /écologique/i, /maisons écologiques/i, /construction verte/i, /terre stabilisée/i, /bâtiment écologique/i,
+                   /construction écologique (bati|bâti)/i, /système btcs (bati|bâti)/i, /blocs de terre comprimée (bati|bâti)/i, /btcs (bati|bâti)/i, /construction durable (bati|bâti)/i, /écologique (bati|bâti)/i, /maisons écologiques (bati|bâti)/i, /construction verte (bati|bâti)/i, /terre stabilisée (bati|bâti)/i, /bâtiment écologique (bati|bâti)/i,
+                   /construction bio/i, /habitat écologique/i, /matériaux naturels/i, /architecture verte/i],
         responses: [batiProInfo.services.ecoConstruction.main]
     },
     {
-        patterns: [/avantages btcs/i, /bénéfices btcs/i, /confort thermique btcs/i, /isolation acoustique btcs/i, /empreinte carbone btcs/i, /matériaux recyclables btcs/i],
+        patterns: [/avantages btcs/i, /bénéfices btcs/i, /confort thermique btcs/i, /isolation acoustique btcs/i, /empreinte carbone btcs/i, /matériaux recyclables btcs/i,
+                   /avantages btcs (bati|bâti)/i, /bénéfices btcs (bati|bâti)/i, /confort thermique btcs (bati|bâti)/i, /isolation acoustique btcs (bati|bâti)/i, /empreinte carbone btcs (bati|bâti)/i, /matériaux recyclables btcs (bati|bâti)/i,
+                   /pourquoi choisir btcs/i, /bénéfices écologiques/i, /isolation phonique btcs/i, /réduction CO2 btcs/i, /matériaux biodégradables btcs/i],
         responses: [batiProInfo.services.ecoConstruction.benefits]
     },
     {
-        patterns: [/cas d'utilisation btcs/i, /projets btcs/i, /écolodges/i, /bâtiments en terre/i, /écoles btcs/i],
+        patterns: [/cas d'utilisation btcs/i, /projets btcs/i, /écolodges/i, /bâtiments en terre/i, /écoles btcs/i,
+                   /cas d'utilisation btcs (bati|bâti)/i, /projets btcs (bati|bâti)/i, /écolodges (bati|bâti)/i, /bâtiments en terre (bati|bâti)/i, /écoles btcs (bati|bâti)/i,
+                   /applications du btcs/i, /types de constructions btcs/i, /maisons en terre/i, /centres communautaires btcs/i, /auberges écologiques/i],
         responses: [batiProInfo.services.ecoConstruction.useCases]
     },
     {
-        patterns: [/fabrication btcs/i, /comment fabriquez-vous les btcs/i, /production btcs/i, /processus btcs/i, /composition btcs/i],
+        patterns: [/fabrication btcs/i, /comment fabriquez-vous les btcs/i, /production btcs/i, /processus btcs/i, /composition btcs/i,
+                   /fabrication btcs (bati|bâti)/i, /comment fabriquez-vous les btcs (bati|bâti)/i, /production btcs (bati|bâti)/i, /processus btcs (bati|bâti)/i, /composition btcs (bati|bâti)/i,
+                   /méthode de fabrication btcs/i, /terre stabilisée fabrication/i, /compression mécanique btcs/i, /usine mobile btcs/i],
         responses: [batiProInfo.services.ecoConstruction.fabricationBTCS]
     },
     {
-        patterns: [/conception bâtiments écologiques/i, /construction maisons btcs/i, /bâtiments en terre/i, /écolodges/i, /auberges écologiques/i, /murs en terre/i],
+        patterns: [/conception bâtiments écologiques/i, /construction maisons btcs/i, /bâtiments en terre/i, /écolodges/i, /auberges écologiques/i, /murs en terre/i,
+                   /conception bâtiments écologiques (bati|bâti)/i, /construction maisons btcs (bati|bâti)/i, /bâtiments en terre (bati|bâti)/i, /écolodges (bati|bâti)/i, /auberges écologiques (bati|bâti)/i, /murs en terre (bati|bâti)/i,
+                   /design écologique btcs/i, /architecture en terre/i, /façades btcs/i, /cloisons btcs/i],
         responses: [batiProInfo.services.ecoConstruction.ecoBuildingDesign]
     },
     {
-        patterns: [/performance environnementale btcs/i, /isolation btcs/i, /empreinte carbone btcs/i, /avantages écologiques btcs/i, /confort thermique btcs/i],
+        patterns: [/performance environnementale btcs/i, /isolation btcs/i, /empreinte carbone btcs/i, /avantages écologiques btcs/i, /confort thermique btcs/i,
+                   /performance environnementale btcs (bati|bâti)/i, /isolation btcs (bati|bâti)/i, /empreinte carbone btcs (bati|bâti)/i, /avantages écologiques btcs (bati|bâti)/i, /confort thermique btcs (bati|bâti)/i,
+                   /régulation température btcs/i, /efficacité énergétique btcs/i, /matériau biodégradable btcs/i],
         responses: [batiProInfo.services.ecoConstruction.environmentalPerformance]
     },
     {
-        patterns: [/solution économique btcs/i, /btcs économique/i, /durée de vie btcs/i, /coût btcs/i, /avantages économiques btcs/i],
+        patterns: [/solution économique btcs/i, /btcs économique/i, /durée de vie btcs/i, /coût btcs/i, /avantages économiques btcs/i,
+                   /solution économique btcs (bati|bâti)/i, /btcs économique (bati|bâti)/i, /durée de vie btcs (bati|bâti)/i, /coût btcs (bati|bâti)/i, /avantages économiques btcs (bati|bâti)/i,
+                   /btcs pas cher/i, /économie de construction btcs/i, /ressources locales btcs/i, /investissement btcs/i],
         responses: [batiProInfo.services.ecoConstruction.economicDurable]
     },
     {
-        patterns: [/entretien btcs/i, /rénovation btcs/i, /réhabilitation btcs/i, /réparer murs btcs/i, /extensions btcs/i],
+        patterns: [/entretien btcs/i, /rénovation btcs/i, /réhabilitation btcs/i, /réparer murs btcs/i, /extensions btcs/i,
+                   /entretien btcs (bati|bâti)/i, /rénovation btcs (bati|bâti)/i, /réhabilitation btcs (bati|bâti)/i, /réparer murs btcs (bati|bâti)/i, /extensions btcs (bati|bâti)/i,
+                   /maintenance btcs/i, /restauration btcs/i, /agrandissement btcs/i, /style architectural btcs/i],
         responses: [batiProInfo.services.ecoConstruction.maintenanceBTCS]
     },
     // Services - Rehabilitation & Renovation
     {
-        patterns: [/réhabilitation et rénovation/i, /rénovation de bâtiments/i, /remise à neuf/i, /modernisation bâtiments/i, /réhabilitation/i, /rénovation/i, /transformer bâtiment/i, /rénover/i, /moderniser/i, /donner une nouvelle vie/i],
+        patterns: [/réhabilitation et rénovation/i, /rénovation de bâtiments/i, /remise à neuf/i, /modernisation bâtiments/i, /réhabilitation/i, /rénovation/i, /transformer bâtiment/i, /rénover/i, /moderniser/i, /donner une nouvelle vie/i,
+                   /réhabilitation et rénovation (bati|bâti)/i, /rénovation de bâtiments (bati|bâti)/i, /remise à neuf (bati|bâti)/i, /modernisation bâtiments (bati|bâti)/i, /réhabilitation (bati|bâti)/i, /rénovation (bati|bâti)/i, /transformer bâtiment (bati|bâti)/i, /rénover (bati|bâti)/i, /moderniser (bati|bâti)/i, /donner une nouvelle vie (bati|bâti)/i,
+                   /travaux de rénovation/i, /restauration de bâtiments/i, /mise à niveau/i, /réaménagement/i, /extension/i],
         responses: [batiProInfo.services.rehabilitationRenovation.main]
     },
     {
-        patterns: [/types d'intervention rénovation/i, /renforcement structurel/i, /ravalement façade/i, /réaménagement intérieur/i, /mise aux normes/i],
+        patterns: [/types d'intervention rénovation/i, /renforcement structurel/i, /ravalement façade/i, /réaménagement intérieur/i, /mise aux normes/i,
+                   /types d'intervention rénovation (bati|bâti)/i, /renforcement structurel (bati|bâti)/i, /ravalement façade (bati|bâti)/i, /réaménagement intérieur (bati|bâti)/i, /mise aux normes (bati|bâti)/i,
+                   /travaux de consolidation/i, /réfection de façade/i, /plomberie rénovation/i, /électricité rénovation/i, /isolation rénovation/i],
         responses: [batiProInfo.services.rehabilitationRenovation.typesOfIntervention]
     },
     {
-        patterns: [/efficacité énergétique rénovation/i, /isolation rénovation/i, /réduire factures/i, /empreinte carbone rénovation/i],
+        patterns: [/efficacité énergétique rénovation/i, /isolation rénovation/i, /réduire factures/i, /empreinte carbone rénovation/i,
+                   /efficacité énergétique rénovation (bati|bâti)/i, /isolation rénovation (bati|bâti)/i, /réduire factures (bati|bâti)/i, /empreinte carbone rénovation (bati|bâti)/i,
+                   /performance énergétique/i, /rénovation thermique/i, /économies d'énergie/i, /bilan énergétique/i],
         responses: [batiProInfo.services.rehabilitationRenovation.energyEfficiency]
     },
     // Services - Land Sales
     {
-        patterns: [/vente de terrain/i, /terrains à vendre/i, /acquérir un terrain/i, /offres terrain/i, /terrain/i, /acheter un terrain/i, /parcelles/i, /lots/i, /terrain constructible/i],
+        patterns: [/vente de terrain/i, /terrains à vendre/i, /acquérir un terrain/i, /offres terrain/i, /terrain/i, /acheter un terrain/i, /parcelles/i, /lots/i, /terrain constructible/i,
+                   /vente de terrain (bati|bâti)/i, /terrains à vendre (bati|bâti)/i, /acquérir un terrain (bati|bâti)/i, /offres terrain (bati|bâti)/i, /terrain (bati|bâti)/i, /acheter un terrain (bati|bâti)/i, /parcelles (bati|bâti)/i, /lots (bati|bâti)/i, /terrain constructible (bati|bâti)/i,
+                   /achat de terrain/i, /terrains disponibles/i, /parcelle à bâtir/i, /investissement foncier/i, /trouver un terrain/i],
         responses: [batiProInfo.services.landSales]
-    },
-
-      // Services - Main
-    {
-        patterns: [/nos services/i, /quels services proposez-vous/i, /liste des services/i, /vos prestations/i, /que faites-vous comme service/i, /services de bati-pro/i, /domaine d'activité/i, /types de services/i, /détaillez vos services/i, /tous vos services/i, /quels services proposes tu/i, /parle-moi de tes services/i, /quelles sont vos offres/i, /service/i, /offre/i, /offres/i, /services/i,/propose/i, /proposes/i],
-        responses: [batiProInfo.services.main]
     },
 
     // Values & Advantages
     {
-        patterns: [/nos valeurs/i, /nos atouts/i, /quelles sont vos valeurs/i, /avantages bati-pro/i, /pourquoi vous choisir/i, /vos forces/i, /vos principes/i, /votre ADN/i],
+        patterns: [/nos valeurs/i, /nos atouts/i, /quelles sont vos valeurs/i, /avantages (bati|bâti)/i, /pourquoi vous choisir/i, /vos forces/i, /vos principes/i, /votre ADN/i,
+                   /nos valeurs (bati|bâti)/i, /nos atouts (bati|bâti)/i, /quelles sont vos valeurs (bati|bâti)/i, /avantages (bati|bâti)/i, /pourquoi vous choisir (bati|bâti)/i, /vos forces (bati|bâti)/i, /vos principes (bati|bâti)/i, /votre ADN (bati|bâti)/i,
+                   /ce qui nous distingue/i, /nos engagements fondamentaux/i, /nos qualités/i],
         responses: [batiProInfo.valuesAdvantages.main]
     },
     {
-        patterns: [/transparence et qualité/i, /qualité de vos services/i, /engagement qualité/i, /fiabilité bati-pro/i, /transparence/i, /clarté/i,/qualité/i,],
+        patterns: [/transparence et qualité/i, /qualité de vos services/i, /engagement qualité/i, /fiabilité (bati|bâti)/i, /transparence/i, /clarté/i, /qualité/i,
+                   /transparence et qualité (bati|bâti)/i, /qualité de vos services (bati|bâti)/i, /engagement qualité (bati|bâti)/i, /fiabilité (bati|bâti)/i, /transparence (bati|bâti)/i, /clarté (bati|bâti)/i, /qualité (bati|bâti)/i,
+                   /intégrité/i, /honnêteté/i, /excellence des services/i, /travail de qualité/i],
         responses: [batiProInfo.valuesAdvantages.transparencyQuality]
     },
     {
-        patterns: [/professionnalisme et innovation/i, /innovation chez bati-pro/i, /expertise bati-pro/i, /technologie bati-pro/i, /professionnalisme/i, /à la pointe/i],
+        patterns: [/professionnalisme et innovation/i, /innovation chez (bati|bâti)/i, /expertise (bati|bâti)/i, /technologie (bati|bâti)/i, /professionnalisme/i, /à la pointe/i,
+                   /professionnalisme et innovation (bati|bâti)/i, /innovation chez (bati|bâti)/i, /expertise (bati|bâti)/i, /technologie (bati|bâti)/i, /professionnalisme (bati|bâti)/i, /à la pointe (bati|bâti)/i,
+                   /compétence/i, /savoir-faire/i, /technique de pointe/i, /recherche et développement/i],
         responses: [batiProInfo.valuesAdvantages.professionalismInnovation]
     },
     {
-        patterns: [/expertise et suivi personnalisé/i, /suivi client/i, /satisfaction client/i, /accompagnement client/i, /expertise/i, /écoute client/i],
+        patterns: [/expertise et suivi personnalisé/i, /suivi client/i, /satisfaction client/i, /accompagnement client/i, /expertise/i, /écoute client/i,
+                   /expertise et suivi personnalisé (bati|bâti)/i, /suivi client (bati|bâti)/i, /satisfaction client (bati|bâti)/i, /accompagnement client (bati|bâti)/i, /expertise (bati|bâti)/i, /écoute client (bati|bâti)/i,
+                   /conseil personnalisé/i, /relation de confiance/i, /support continu/i, /service sur mesure/i],
         responses: [batiProInfo.valuesAdvantages.expertiseCustomerCare]
     },
     {
-        patterns: [/notre promesse/i, /promesse bati-pro/i, /se loger plus simple/i, /votre engagement client/i, /votre mantra/i],
+        patterns: [/notre promesse/i, /promesse (bati|bâti)/i, /se loger plus simple/i, /votre engagement client/i, /votre mantra/i,
+                   /notre promesse (bati|bâti)/i, /promesse (bati|bâti)/i, /se loger plus simple (bati|bâti)/i, /votre engagement client (bati|bâti)/i, /votre mantra (bati|bâti)/i,
+                   /nos garanties/i, /ce que nous garantissons/i, /simplifier le logement/i],
         responses: [batiProInfo.promise.main]
     },
 
     // Mission & Vision
     {
-        patterns: [/votre mission/i, /la mission de bati-pro/i, /objectif de bati-pro/i, /but de l'entreprise/i, /raison d'être/i],
+        patterns: [/votre mission/i, /la mission de (bati|bâti)/i, /objectif de (bati|bâti)/i, /but de l'entreprise/i, /raison d'être/i,
+                   /votre mission (bati|bâti)/i, /la mission de (bati|bâti)/i, /objectif de (bati|bâti)/i, /but de l'entreprise (bati|bâti)/i, /raison d'être (bati|bâti)/i,
+                   /nos objectifs/i, /ce que nous voulons accomplir/i, /notre vocation/i],
         responses: [batiProInfo.missionVision.mission]
     },
     {
-        patterns: [/votre vision/i, /la vision de bati-pro/i, /futur de bati-pro/i, /vos ambitions/i, /vos objectifs à long terme/i],
+        patterns: [/votre vision/i, /la vision de (bati|bâti)/i, /futur de (bati|bâti)/i, /vos ambitions/i, /vos objectifs à long terme/i,
+                   /votre vision (bati|bâti)/i, /la vision de (bati|bâti)/i, /futur de (bati|bâti)/i, /vos ambitions (bati|bâti)/i, /vos objectifs à long terme (bati|bâti)/i,
+                   /notre avenir/i, /où vous voyez-vous dans le futur/i, /vos aspirations/i],
         responses: [batiProInfo.missionVision.vision]
     },
 
     // Contact Information
     {
-        patterns: [/contact/i, /comment vous contacter/i, /coordonnées/i, /informations de contact/i, /contacter bati-pro/i, /comment vous joindre/i, /numéro de contact/i, /nous joindre/i,/joindre/i,/contactez/i,/contacté/i ,/prendre rendez-vous/i],
+        patterns: [/contact/i, /comment vous contacter/i, /coordonnées/i, /informations de contact/i, /contacter (bati|bâti)/i, /comment vous joindre/i, /numéro de contact/i, /nous joindre/i,/joindre/i,/contactez/i,/contacté/i ,/prendre rendez-vous/i,
+                   /contact (bati|bâti)/i, /comment vous contacter (bati|bâti)/i, /coordonnées (bati|bâti)/i, /informations de contact (bati|bâti)/i, /contacter (bati|bâti)/i, /comment vous joindre (bati|bâti)/i, /numéro de contact (bati|bâti)/i, /nous joindre (bati|bâti)/i,/joindre (bati|bâti)/i,/contactez (bati|bâti)/i,/contacté (bati|bâti)/i ,/prendre rendez-vous (bati|bâti)/i,
+                   /nous appeler/i, /parler à quelqu'un/i, /informations de contact/i, /téléphone/i, /email/i, /adresse/i],
         responses: [batiProInfo.contact.main]
     },
     {
-        patterns: [/whatsapp/i, /numéro whatsapp/i, /contacter par whatsapp/i, /envoyer un message whatsapp/i, /chat whatsapp/i],
+        patterns: [/whatsapp/i, /numéro whatsapp/i, /contacter par whatsapp/i, /envoyer un message whatsapp/i, /chat whatsapp/i,
+                   /whatsapp (bati|bâti)/i, /numéro whatsapp (bati|bâti)/i, /contacter par whatsapp (bati|bâti)/i, /envoyer un message whatsapp (bati|bâti)/i, /chat whatsapp (bati|bâti)/i,
+                   /écrire sur whatsapp/i, /discuter sur whatsapp/i, /lien whatsapp/i],
         responses: [batiProInfo.contact.whatsapp]
     },
     {
-        patterns: [/facebook/i, /page facebook/i, /facebook bati-pro/i, /votre page fb/i, /réseaux sociaux/i, /suivre sur facebook/i],
+        patterns: [/facebook/i, /page facebook/i, /facebook (bati|bâti)/i, /votre page fb/i, /réseaux sociaux/i, /suivre sur facebook/i,
+                   /facebook (bati|bâti)/i, /page facebook (bati|bâti)/i, /facebook (bati|bâti)/i, /votre page fb (bati|bâti)/i, /réseaux sociaux (bati|bâti)/i, /suivre sur facebook (bati|bâti)/i,
+                   /lien facebook/i, /profil facebook/i, /vos actualités facebook/i],
         responses: [batiProInfo.contact.facebook]
     },
     {
-        patterns: [/téléphone/i, /numéro de téléphone/i, /appeler/i, /numéro bati-pro/i, /contacter par téléphone/i, /téléphoner/i, /appel téléphonique/i],
+        patterns: [/téléphone/i, /numéro de téléphone/i, /appeler/i, /numéro (bati|bâti)/i, /contacter par téléphone/i, /téléphoner/i, /appel téléphonique/i,
+                   /téléphone (bati|bâti)/i, /numéro de téléphone (bati|bâti)/i, /appeler (bati|bâti)/i, /numéro (bati|bâti)/i, /contacter par téléphone (bati|bâti)/i, /téléphoner (bati|bâti)/i, /appel téléphonique (bati|bâti)/i,
+                   /appel/i, /contacter par appel/i, /ligne téléphonique/i, /numéro direct/i],
         responses: [batiProInfo.contact.phone]
     },
     {
-        patterns: [/email/i, /adresse mail/i, /envoyer un mail/i, /courriel/i],
+        patterns: [/email/i, /adresse mail/i, /envoyer un mail/i, /courriel/i,
+                   /email (bati|bâti)/i, /adresse mail (bati|bâti)/i, /envoyer un mail (bati|bâti)/i, /courriel (bati|bâti)/i,
+                   /adresse électronique/i, /écrire un email/i, /boîte mail/i],
         responses: [batiProInfo.contact.email]
     },
     {
-        patterns: [/horaires d'ouverture/i, /vos horaires/i, /quand êtes-vous ouverts/i, /heures d'ouverture/i],
+        patterns: [/horaires d'ouverture/i, /vos horaires/i, /quand êtes-vous ouverts/i, /heures d'ouverture/i,
+                   /horaires d'ouverture (bati|bâti)/i, /vos horaires (bati|bâti)/i, /quand êtes-vous ouverts (bati|bâti)/i, /heures d'ouverture (bati|bâti)/i,
+                   /jours d'ouverture/i, /fermeture/i, /ouvert le week-end/i, /heures de bureau/i],
         responses: [batiProInfo.contact.workingHours]
     },
 
     // Site Navigation / Pages (text-only references)
     {
-        patterns: [/pages du site/i, /quelles sont les pages du site/i, /navigation du site/i, /structure du site/i, /où puis-je trouver des informations/i, /plan du site/i, /visiter le site/i],
+        patterns: [/pages du site/i, /quelles sont les pages du site/i, /navigation du site/i, /structure du site/i, /où puis-je trouver des informations/i, /plan du site/i, /visiter le site/i,
+                   /pages du site (bati|bâti)/i, /quelles sont les pages du site (bati|bâti)/i, /navigation du site (bati|bâti)/i, /structure du site (bati|bâti)/i, /où puis-je trouver des informations (bati|bâti)/i, /plan du site (bati|bâti)/i, /visiter le site (bati|bâti)/i,
+                   /menu du site/i, /sections du site/i, /liens du site/i, /explorer le site/i],
         responses: [batiProInfo.sitePages.list]
     },
-     // Site Navigation / Pages (text-only references)
     {
-        patterns: [/situe/i, /trouve/i, /localise/i, /situé/i,/trouvé/i ,/trouver/i],
-        responses: ["Nous somme situé à Cocody Riviera Palmeraie, Cité du Bonheur, Abidjan, Côte d'Ivoire."]
+        patterns: [/situe/i, /trouve/i, /localise/i, /situé/i,/trouvé/i ,/trouver/i, /où êtes-vous/i, /votre localisation/i],
+        responses: ["Nous sommes situés à Cocody Riviera Palmeraie, Cité du Bonheur, Abidjan, Côte d'Ivoire."]
     },
     {
-        patterns: [/page accueil/i, /page d'accueil/i, /acceuil du site/i, /aller à l'accueil/i, /home page/i],
+        patterns: [/page accueil/i, /page d'accueil/i, /acceuil du site/i, /aller à l'accueil/i, /home page/i,
+                   /page accueil (bati|bâti)/i, /page d'accueil (bati|bâti)/i, /acceuil du site (bati|bâti)/i, /aller à l'accueil (bati|bâti)/i, /home page (bati|bâti)/i,
+                   /page principale/i, /première page du site/i, /lien accueil/i],
         responses: [batiProInfo.sitePages.home]
     },
     {
-        patterns: [/page architecture/i, /la page architecture/i, /aller sur architecture/i, /section architecture/i, /design page/i],
+        patterns: [/page architecture/i, /la page architecture/i, /aller sur architecture/i, /section architecture/i, /design page/i,
+                   /page architecture (bati|bâti)/i, /la page architecture (bati|bâti)/i, /aller sur architecture (bati|bâti)/i, /section architecture (bati|bâti)/i, /design page (bati|bâti)/i,
+                   /lien architecture/i, /infos architecture/i, /découvrir architecture/i],
         responses: [batiProInfo.sitePages.architecture]
     },
     {
-        patterns: [/page terrain/i, /la page terrain/i, /aller sur terrain/i, /section terrain/i, /vente terrain page/i, /land page/i],
+        patterns: [/page terrain/i, /la page terrain/i, /aller sur terrain/i, /section terrain/i, /vente terrain page/i, /land page/i,
+                   /page terrain (bati|bâti)/i, /la page terrain (bati|bâti)/i, /aller sur terrain (bati|bâti)/i, /section terrain (bati|bâti)/i, /vente terrain page (bati|bâti)/i, /land page (bati|bâti)/i,
+                   /lien terrain/i, /infos terrains/i, /découvrir terrains/i],
         responses: [batiProInfo.sitePages.land]
     },
     {
-        patterns: [/page écologique/i, /la page écologique/i, /aller sur écologique/i, /section écologique/i, /page btcs/i, /eco page/i],
+        patterns: [/page écologique/i, /la page écologique/i, /aller sur écologique/i, /section écologique/i, /page btcs/i, /eco page/i,
+                   /page écologique (bati|bâti)/i, /la page écologique (bati|bâti)/i, /aller sur écologique (bati|bâti)/i, /section écologique (bati|bâti)/i, /page btcs (bati|bâti)/i, /eco page (bati|bâti)/i,
+                   /lien écologique/i, /infos btcs/i, /découvrir écologique/i],
         responses: [batiProInfo.sitePages.eco]
     },
     {
-        patterns: [/page classique/i, /la page classique/i, /aller sur classique/i, /section classique/i, /classic page/i],
-        responses: [batiProInfo.services.classicConstruction.main] // Changed to main description for classic construction
+        patterns: [/page classique/i, /la page classique/i, /aller sur classique/i, /section classique/i, /classic page/i,
+                   /page classique (bati|bâti)/i, /la page classique (bati|bâti)/i, /aller sur classique (bati|bâti)/i, /section classique (bati|bâti)/i, /classic page (bati|bâti)/i,
+                   /lien classique/i, /infos construction classique/i, /découvrir classique/i],
+        responses: [batiProInfo.services.classicConstruction.main]
     },
     {
-        patterns: [/page ingénieur/i, /la page ingénieur/i, /aller sur ingénieur/i, /section ingénierie/i, /engineer page/i],
+        patterns: [/page ingénieur/i, /la page ingénieur/i, /aller sur ingénieur/i, /section ingénierie/i, /engineer page/i,
+                   /page ingénieur (bati|bâti)/i, /la page ingénieur (bati|bâti)/i, /aller sur ingénieur (bati|bâti)/i, /section ingénierie (bati|bâti)/i, /engineer page (bati|bâti)/i,
+                   /lien ingénierie/i, /infos ingénierie/i, /découvrir ingénierie/i],
         responses: [batiProInfo.sitePages.engineer]
     },
     {
-        patterns: [/page rang/i, /la page rang/i, /aller sur rang/i, /section rang/i, /rank page/i],
+        patterns: [/page rang/i, /la page rang/i, /aller sur rang/i, /section rang/i, /rank page/i,
+                   /page rang (bati|bâti)/i, /la page rang (bati|bâti)/i, /aller sur rang (bati|bâti)/i, /section rang (bati|bâti)/i, /rank page (bati|bâti)/i,
+                   /lien rang/i, /infos rang/i, /découvrir rang/i],
         responses: [batiProInfo.sitePages.rank]
     },
     {
-        patterns: [/page bot/i, /la page du bot/i, /où es-tu/i, /revenir au bot/i, /parler au bot/i, /bot page/i],
+        patterns: [/page bot/i, /la page du bot/i, /où es-tu/i, /revenir au bot/i, /parler au bot/i, /bot page/i,
+                   /page bot (bati|bâti)/i, /la page du bot (bati|bâti)/i, /où es-tu (bati|bâti)/i, /revenir au bot (bati|bâti)/i, /parler au bot (bati|bâti)/i, /bot page (bati|bâti)/i,
+                   /lien bot/i, /infos bot/i, /découvrir bot/i],
         responses: [batiProInfo.sitePages.bot]
     },
 
@@ -474,3 +619,4 @@ const rules = [
         responses: []
     }
 ];
+
