@@ -31,7 +31,7 @@ export default function ApiBot({ click, cliquer }: botApiType) {
                 // Le bouton est initialement à moitié caché, le message est toujours visible.
                 // 'group' permet d'appliquer des styles au survol du parent sur ses enfants.
                 <div 
-                    className="fixed mt-8 right-0 z-92 flex flex-col items-end transition-all duration-300 ease-in-out group"
+                    className="fixed mt-16 right-0 z-92 flex flex-col items-end transition-all duration-300 ease-in-out group opacity-75"
                 >
                     {text && ( // Le paragraphe est toujours affiché s'il y a du texte
                         <p className="bg-white text-gray-800 text-sm px-3 py-1 rounded-lg mb-2 shadow-lg max-w-xs text-right animate-fade-in-right">
