@@ -19,6 +19,7 @@ interface Post {
 const POSTS_PER_PAGE = 5; // Nombre d'éléments à charger par requête
 
 export default function Architecture() {
+  document.title = "Architecture - BatiPro Ingénierie";
   const [realisations, setRealisations] = useState<Post[]>([]);
   const [ventes, setVentes] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);

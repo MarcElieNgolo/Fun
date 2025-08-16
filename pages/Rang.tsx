@@ -19,6 +19,8 @@ type AdminStep =
   | "deletePost"; // L'administrateur est sur l'interface de suppression
 
 export default function Rang() {
+
+  document.title = "Rang - BatiPro Ingénierie"; // Titre de la page
   // L'état principal pour contrôler la vue affichée
   const [currentStep, setCurrentStep] = useState<AdminStep>("choixPersonnel");
   // L'état pour savoir si l'administrateur est connecté

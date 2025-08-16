@@ -20,6 +20,8 @@ interface Post {
 const POSTS_PER_PAGE = 5; // Nombre d'éléments à charger par requête
 
 export default function Terrain() {
+
+  document.title = "Terrains - BatiPro Ingénierie"; // Titre de la page
   // Séparer les états pour les réalisations et les ventes de terrains
   const [realisationsTerrain, setRealisationsTerrain] = useState<Post[]>([]);
   const [ventesTerrain, setVentesTerrain] = useState<Post[]>([]);
@@ -46,13 +48,17 @@ export default function Terrain() {
     },
     []
   );
-
-  const [Api, setApi] = useState<boolean>(false)
+  // Fonction pour activer ou désactiver le bot API
+  // Utilisation de useState pour gérer l'état du bot API
+  const [Api, setApi] = useState<boolean>(false);
   const activeBot = () => {
-    setApi(!Api)
-  }
+    setApi(!Api);
+  };
 
   // Fonction pour récupérer les posts avec pagination et filtre par type
+  // Utilisation de useCallback pour éviter les re-renders inutiles
+  // Cette fonction prend en paramètre le type de post (realisation ou vente) et la page à charger
+  // Elle utilise axios pour faire une requête GET au backend et récupérer les données
   const fetchPosts = useCallback(async (
     postType: "realisation" | "vente", // Indique si on charge des réalisations ou des ventes
     page: number

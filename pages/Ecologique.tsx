@@ -19,6 +19,8 @@ interface Post {
 const POSTS_PER_PAGE = 5; // Nombre d'éléments à charger par requête
 
 export default function Ecologique() {
+
+  document.title = "Constructions Écologiques - BatiPro Ingénierie";
   // Séparer les états pour les réalisations et les ventes écologiques
   const [realisationsEcologique, setRealisationsEcologique] = useState<Post[]>([]);
   const [ventesEcologique, setVentesEcologique] = useState<Post[]>([]);

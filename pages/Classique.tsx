@@ -19,6 +19,8 @@ interface Post {
 const POSTS_PER_PAGE = 5; // Nombre d'éléments à charger par requête
 
 export default function Classique() {
+
+  document.title = "Constructions Classiques - BatiPro Ingénierie";
   // Séparer les états pour les réalisations et les ventes classiques
   const [realisationsClassique, setRealisationsClassique] = useState<Post[]>([]);
   const [ventesClassique, setVentesClassique] = useState<Post[]>([]);

@@ -19,6 +19,8 @@ interface Post {
 const POSTS_PER_PAGE = 5; // Nombre d'éléments à charger par requête
 
 export default function Ingenieur() {
+
+  document.title = "Études d'Ingénieur - BatiPro Ingénierie";
   // Séparer les états pour les réalisations et les ventes d'ingénierie
   const [realisationsIngenieur, setRealisationsIngenieur] = useState<Post[]>([]);
   const [ventesIngenieur, setVentesIngenieur] = useState<Post[]>([]);
